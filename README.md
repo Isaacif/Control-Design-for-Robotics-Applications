@@ -1,5 +1,6 @@
 # Control-Design-for-Robotics-Applications
-Implementation of a fully dedicated platform for Robotic Interfacing and Control applications. It covers the whole process of designing low-level software for control and communications as well as supervision and interface systems.
+Implementation of a fully dedicated platform for Robotic Interfacing and Control applications. 
+It covers the whole process of designing low-level software for control and communications as well as supervision and interface systems.
 
 The control scheme supports the following tools:
 
