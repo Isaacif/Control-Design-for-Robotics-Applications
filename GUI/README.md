@@ -3,7 +3,7 @@ Implementation of a fully dedicated platform for Robotic Interfacing and Control
 
 This Folder holds all the files for the GUI.
 
-![Screenshot from 2023-06-17 17-57-05](https://github.com/Isaacif/Control-Design-for-Robotics-Applications/assets/64928623/d944001f-b60d-46c1-a06e-804bc0262bad)
+![GUI](https://github.com/Isaacif/Control-Design-for-Robotics-Applications/assets/64928623/d944001f-b60d-46c1-a06e-804bc0262bad)
 
 
 
@@ -12,5 +12,12 @@ Usage example of the GUI.
 
 
 
-https://github.com/Isaacif/Control-Design-for-Robotics-Applications/assets/64928623/3f05b868-1f25-4113-8619-2725d7a62348
+
+
+https://github.com/Isaacif/Control-Design-for-Robotics-Applications/assets/64928623/a7e433a7-f254-4f51-8fad-42658962bada
+
+
+
+
+
 
