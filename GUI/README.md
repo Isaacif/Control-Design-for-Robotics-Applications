@@ -10,6 +10,7 @@ This Folder holds all the files for the GUI.
 The needs to set the pair Joint/Angle of the desired motion and activate it.
 Usage example of the GUI.
 
-[Uploading Screencast from 17-06-2023 18:05:19.webm…]()
 
+
+https://github.com/Isaacif/Control-Design-for-Robotics-Applications/assets/64928623/3f05b868-1f25-4113-8619-2725d7a62348
 
