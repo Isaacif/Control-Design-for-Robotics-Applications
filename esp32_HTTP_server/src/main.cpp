@@ -5,8 +5,8 @@
 
 #define     WEB_SERVER_PORT     80  
 
-const char* NETWORK_SSID = "ADRIANO_2.4G"; 
-const char* NETWORK_PASSWORD = "1801bianca";
+const char* NETWORK_SSID = ""; 
+const char* NETWORK_PASSWORD = "";
 
 WebServer espWebServer(WEB_SERVER_PORT);
 
