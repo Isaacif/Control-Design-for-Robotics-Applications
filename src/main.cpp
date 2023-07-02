@@ -1,30 +1,26 @@
+#define StateGain 0.2
+#define SetPoint 430
 
-/*
- * This file is part of the libopencm3 project.
- *
- * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
- * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
- * Copyright (C) 2012 Karl Palsson <karlp@tweak.net.au>
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-
+#include "pwmControl.h"
+#include "adControl.h"
 
 int main(void)
 {
+    uint16_t sensor1; 
+    int16_t error;
+    pwmControl PWMtimer_4(TIM4_CNT, TIM4, RCC_TIM4);
+    pwmControl PWMtimer_3(TIM3_CNT, TIM3, RCC_TIM3);
 
+    PWMtimer_4.gpioSetup(TIM_OC1, GPIO6, GPIOB, RCC_GPIOB);
+    PWMtimer_4.gpioSetup(TIM_OC2, GPIO7, GPIOB, RCC_GPIOB);
+    PWMtimer_4.gpioSetup(TIM_OC3, GPIO8, GPIOB, RCC_GPIOB);
+    PWMtimer_4.gpioSetup(TIM_OC4, GPIO9, GPIOB, RCC_GPIOB);
+
+    PWMtimer_4.pwmWrite(100, TIM_OC1);
+    PWMtimer_4.pwmWrite(5, TIM_OC2);
+    PWMtimer_4.pwmWrite(35, TIM_OC3);
+    PWMtimer_4.pwmWrite(75, TIM_OC4);
+
+    PWMtimer_3.gpioSetup(TIM_OC4, GPIO1, GPIOB, RCC_GPIOB);
+    PWMtimer_3.pwmWrite(100, TIM_OC4);
 }
