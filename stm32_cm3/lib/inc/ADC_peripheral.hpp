@@ -1,3 +1,6 @@
+#ifndef ADC_peripheral_HPP
+#define ADC_peripheral_HPP
+
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
@@ -22,3 +25,5 @@ class ADC_peripheral
     private:
        uint32_t rcc_apb2_frequency = 72000000;
 };
+
+#endif 

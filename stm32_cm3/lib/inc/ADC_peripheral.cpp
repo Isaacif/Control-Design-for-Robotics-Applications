@@ -1,4 +1,4 @@
-#include "ADC_peripheral.h"
+#include "ADC_peripheral.hpp"
 
 ADC_peripheral::ADC_peripheral(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSelect,
                                 rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect)

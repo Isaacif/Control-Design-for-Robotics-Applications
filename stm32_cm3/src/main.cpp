@@ -1,9 +1,9 @@
 #define StateGain 0.2
 #define SetPoint 430
 
-#include "PWM_peripheral.h"
-#include "ADC_peripheral.h"
-#include "TIMER_peripheral.h"
+#include "PWM_peripheral.hpp"
+#include "ADC_peripheral.hpp"
+#include "TIMER_peripheral.hpp"
 
 
 /* Timer 4 and Timer 3 are reserved for PWM applications
@@ -14,10 +14,23 @@
 #define LED_PIN GPIO6
 #define LED_PORT GPIOB
 
-#define TIMER_RESOLUTION_10uS 1e-4
-#define TIMER_COUNTER_1S      10000
+#define TIMER_RESOLUTION_10uS  1e-5
 
-uint8_t activate_flag = 0;
+#define TIMER_COUNTER_1ms      1000
+#define TIMER_COUNTER_1s      10000
+
+#define tick_ms(ms)            ms*1000        
+
+uint32_t g_counter_refence = 0;
+
+void tim2_isr(void) 
+{
+    if (timer_get_flag(TIM2, TIM_SR_UIF)) 
+    {
+        timer_clear_flag(TIM2, TIM_SR_UIF);
+        g_counter_refence++;
+    }
+}
 
 int main(void)
 {
@@ -31,31 +44,12 @@ int main(void)
 
     //PWMtimer_4.gpioSetup(TIM_OC1, GPIO6, GPIOB, RCC_GPIOB);
     //PWMtimer_4.pwmWrite(100, TIM_OC1);
-
-    rcc_periph_clock_enable(RCC_GPIOB);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
-    //gpio_clear(LED_PORT, LED_PIN);
-
-    Time_Counter.timerEnable();
-    gpio_set(LED_PORT, LED_PIN);
-
-    while(true)
-    {   
-        counting = timer_get_counter(TIM2);
-        if(counting >= TIMER_COUNTER_1S)
-        {   
-            if(activate_flag == 0)
-            {
-                gpio_set(LED_PORT, LED_PIN);
-                activate_flag = 1;
-                timer_set_counter(TIM2, 0);
-            }
-            else if(activate_flag == 1)
-            {
-                gpio_clear(LED_PORT, LED_PIN);
-                activate_flag = 0;
-                timer_set_counter(TIM2, 0);
-            }
+   
+   while(true)
+   {
+        if(g_counter_refence >= tick_ms(120))
+        {
+            gpio_toggle(GPIOB, GPIO6);
         }
-    }
+   }
 }

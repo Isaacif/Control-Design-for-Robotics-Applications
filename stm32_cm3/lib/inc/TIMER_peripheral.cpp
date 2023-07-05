@@ -1,4 +1,4 @@
-#include "TIMER_peripheral.h"
+#include "TIMER_peripheral.hpp"
 
 TIMER_peripheral::TIMER_peripheral(uint16_t TC_REG, uint32_t T_REG, 
                                    rcc_periph_clken RCC_TSelect, float resolution)
@@ -8,12 +8,13 @@ TIMER_peripheral::TIMER_peripheral(uint16_t TC_REG, uint32_t T_REG,
     frequency = (1/resolution);
 
     rcc_periph_clock_enable(RCC_TIMER_SELECT);
-    rcc_periph_reset_pulse(RST_TIM2);
 
     timer_set_mode(timer_register, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
-
-    timer_set_prescaler(timer_register, ((rcc_apb1_frequency * 2) / frequency));
-    timer_set_period(timer_register, 65535);
+    timer_set_prescaler(timer_register, ((rcc_apb1_frequency * 2)/10000));
+    timer_set_period(timer_register, 10);
+    timer_enable_irq(timer_register, TIM_DIER_UIE);
+    nvic_enable_irq(NVIC_TIM2_IRQ);
+    timer_enable_counter(timer_register);
 
 }
 

@@ -1,4 +1,4 @@
-#include "PWM_peripheral.h"
+#include "PWM_peripheral.hpp"
 
 PWM_peripheral::PWM_peripheral(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSelect)
 {
