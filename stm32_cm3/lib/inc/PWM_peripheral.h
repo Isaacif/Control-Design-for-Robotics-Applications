@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-class pwmControl
+class PWM_peripheral
 {
     public:
         tim_oc_id TIMER_SELECT;
@@ -16,7 +16,7 @@ class pwmControl
         uint32_t timer_register;
         uint32_t timer_counter_register;
 
-        pwmControl(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSelect);
+        PWM_peripheral(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSelect);
         
         void gpioSetup(tim_oc_id TIMER_SELECT, uint32_t GPIO_PIN_Select, 
                        uint32_t GPIO_Port_Select, rcc_periph_clken RCC_GPort_Select);

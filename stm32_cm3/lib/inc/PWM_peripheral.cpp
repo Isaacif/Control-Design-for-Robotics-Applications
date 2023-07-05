@@ -1,6 +1,6 @@
-#include "pwmControl.h"
+#include "PWM_peripheral.h"
 
-pwmControl::pwmControl(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSelect)
+PWM_peripheral::PWM_peripheral(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSelect)
 {
     timer_counter_register = TC_REG, timer_register = T_REG, RCC_TIMER_SELECT = RCC_TSelect;
 
@@ -19,12 +19,12 @@ pwmControl::pwmControl(uint32_t TC_REG, uint32_t T_REG, rcc_periph_clken RCC_TSe
 
 }   
 
-void pwmControl::pwmTimer_reset()
+void PWM_peripheral::pwmTimer_reset()
 {
     timer_counter_register = 0;
 }
 
-void pwmControl::gpioSetup(tim_oc_id timer_select, uint32_t GPIO_PIN_Select, 
+void PWM_peripheral::gpioSetup(tim_oc_id timer_select, uint32_t GPIO_PIN_Select, 
                            uint32_t GPIO_Port_Select, rcc_periph_clken RCC_GPort_Select)
 {
     rcc_periph_clock_enable(RCC_GPort_Select);
@@ -35,7 +35,7 @@ void pwmControl::gpioSetup(tim_oc_id timer_select, uint32_t GPIO_PIN_Select,
 
 }
 
-void pwmControl::pwmWrite(uint8_t duty_cycle, tim_oc_id timer_select)
+void PWM_peripheral::pwmWrite(uint8_t duty_cycle, tim_oc_id timer_select)
 {
     uint32_t busy_time = (duty_cycle*COUNT_UP_TO)/100;
     timer_set_oc_value(timer_register, timer_select, busy_time);
@@ -44,7 +44,7 @@ void pwmControl::pwmWrite(uint8_t duty_cycle, tim_oc_id timer_select)
     timer_enable_oc_preload(timer_register, timer_select);
 }
 
-void pwmControl::pwmStop()
+void PWM_peripheral::pwmStop()
 {
     timer_disable_counter(timer_register);
 }
