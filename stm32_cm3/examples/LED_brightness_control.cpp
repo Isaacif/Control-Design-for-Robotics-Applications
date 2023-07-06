@@ -4,7 +4,6 @@
 #include "PWM_peripheral.hpp"
 #include "ADC_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
-#include "USART_peripheral.hpp"
 
 
 /* Timer 4 and Timer 3 are reserved for PWM applications

@@ -6,12 +6,16 @@
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/cm3/systick.h>
 
-static volatile uint32_t _millis = 0;
+#define SYSTEM_COUNT_1S       10000
+#define SYSTEM_COUNT_1mS        10
+#define SYSTEM_COUNT_100uS      1
 
+#define SYSTEM_TICK_MS(ms)      ms*SYSTEM_COUNT_1mS
+
+static volatile uint32_t g_counter_millis = 0;
 class SYS_TIMER_peripheral
 {
-    public: 
-        
+    public:      
         uint16_t system_tick_frequency;
 
         SYS_TIMER_peripheral(uint16_t system_frequency);
