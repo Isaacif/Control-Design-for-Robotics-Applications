@@ -4,7 +4,14 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/cm3/systick.h>
 
+static volatile uint32_t _millis = 0;
+
+void sys_tick_handler(void)
+{
+    _millis++;
+}
 class TIMER_peripheral
 {
     public: 
