@@ -10,4 +10,6 @@ SYS_TIMER_peripheral::SYS_TIMER_peripheral(uint16_t system_frequency)
     systick_interrupt_enable();                         
     systick_counter_enable();   
 
+    nvic_set_priority(NVIC_SYSTICK_IRQ, 1);
+
 }
