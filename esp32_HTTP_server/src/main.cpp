@@ -8,11 +8,11 @@
 #define     RX_pin              16
 #define     TX_pin              17
 
-const char* NETWORK_SSID = ""; 
-const char* NETWORK_PASSWORD = "";
+const char* NETWORK_SSID = "MOB-ADRIANO"; 
+const char* NETWORK_PASSWORD = "1801bianca";
 
 WebServer espWebServer(WEB_SERVER_PORT);
-HardwareSerial SerialPort(1);
+HardwareSerial SerialPort(2);
 
 String Joint = "";
 String Angle = "";
@@ -23,12 +23,14 @@ void requestHandler()
     {
       Joint = espWebServer.arg("Joint");
       espWebServer.send(200, "text/plain", "Message received: " + Joint);
+      SerialPort.println(Joint);
     }
     if (espWebServer.hasArg("Angle"))
     {
       Angle = espWebServer.arg("Angle");
       espWebServer.send(200, "text/plain", "Message received: " + Angle);
       Serial.println("Sucessful Comunication. ");
+      SerialPort.println(Angle);
     }
     else 
     {
@@ -57,11 +59,20 @@ void setup()
     espWebServer.begin();
     Serial.println("HTTP server started");          
 
-   SerialPort.begin(15200, SERIAL_8N1, RX_pin, TX_pin);                                                       
+    SerialPort.begin(115200, SERIAL_8N1, RX_pin, TX_pin);                                                       
 }
 
 void loop() 
 {
     espWebServer.handleClient();
+
+
+    if (SerialPort.available()) 
+    {
+        String receivedMessage = SerialPort.readString();
+        Serial.print("Received message: ");
+        Serial.println(receivedMessage);
+    }
+    
 }
 

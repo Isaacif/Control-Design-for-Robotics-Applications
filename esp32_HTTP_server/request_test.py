@@ -1,6 +1,6 @@
 import requests
 
-esp32_ip = "192.168.1.7"  
+esp32_ip = "192.168.100.29"  
 url = f"http://{esp32_ip}/"
 
 message_value = 5

@@ -15,20 +15,20 @@ class USART_peripheral
         rcc_periph_clken RCC_GPIO_PORT_SELECT;
         uint32_t GPIO_PORT_SELECT;
 
-        uint16_t usart_register;
-        uint16_t usart_baudrate;
+        uint32_t usart_register;
+        uint32_t usart_baudrate;
         uint8_t usart_pin_tx;
         uint8_t usart_pin_rx;
 
-        USART_peripheral(uint8_t USART_TX, uint8_t USART_RX, uint32_t GPORT_SELECT, 
-                         rcc_periph_clken RCC_USART, uint16_t USART_REG, 
+        USART_peripheral(uint16_t USART_TX, uint16_t USART_RX, uint32_t GPORT_SELECT, 
+                         rcc_periph_clken RCC_USART, uint32_t USART_REG, 
                          rcc_periph_clken RCC_GPORT_SELECT, uint32_t baudrate);
 
         
         void usartSend(const char *characters);
 
     private:
-        uint8_t data_bits = 8;
+        uint32_t data_bits = 8;
 
 };
 
