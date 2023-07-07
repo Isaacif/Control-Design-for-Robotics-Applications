@@ -1,16 +1,37 @@
+/**
+ * @file PWM_peripheral.hpp
+ * @author Isaac Lima (isaac.lima.sousa61@aluno.ifce.edu.br)
+ * @brief Head file for the PWM peripheral class drive.
+ * @version 0.1
+ * @date 2023-07-02
+ * 
+ */
+
 #ifndef PWM_peripheral_HPP
 #define PWM_peripheral_HPP
 
-#define DAC(voltage)    5461*12
+#define DAC(voltage)    5461*12  // Converts voltage value(0-12V) to digital 
 
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+//*****************************************************************************
+//  Using libopencm3 for peripheral interface.
+//  timer.h General Timers file.
+//  gpio.h General Purpose Input Output file.
+//  rcc.h  Real Time Clock Control file.
+//  nvic.h Nested Vectored Interrupt Controller file.
+//*****************************************************************************
+
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/cm3/nvic.h>
 
-#include <stdint.h>
+#include <stdint.h>             // Using std number format
 
+/**
+ * @brief PWM_peripheral class
+ * Joins all PWM configurations 
+ */
 class PWM_peripheral
 {
     public:

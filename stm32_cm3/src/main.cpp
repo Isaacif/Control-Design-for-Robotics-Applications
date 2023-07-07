@@ -1,10 +1,39 @@
+/**
+ * @file main.cpp
+ * @author Isaac Lima (isaac.lima.sousa61@aluno.ifce.edu.br)
+ * @brief Source file for the stm32 firmware
+ * main project file: 
+ * Implements all the setup communication with the HTTP server.
+ * All the drivers and algorithms for the necessary interface.
+ * @version 0.1
+ * @date 2023-07-02
+ */
+
+
+//*****************************************************************************
+// Macros setup for main function
+//*****************************************************************************
+
 #define StateGain 0.2
 #define SetPoint 430
+
+#define LED_PIN GPIO6
+#define LED_PORT GPIOB
+#define USART_PORT USART1
+
+#define system_frequency_10Khz    1e4
+
+//*****************************************************************************
+// importing all the implemented drivers classes 
+// as well as other userful modules
+//*****************************************************************************
+
 
 #include "PWM_peripheral.hpp"
 #include "ADC_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
 #include "USART_peripheral.hpp"
+
 #include <string.h>
 
 
@@ -14,20 +43,19 @@
    Sys_Tick timer is being used for general counter control
 */
 
-#define LED_PIN GPIO6
-#define LED_PORT GPIOB
-#define USART_PORT USART1
-
-#define system_frequency_10Khz    1e4
-
 const char *message = "alive";
 
 
+
+//*****************************************************************************
+// Create all the drivers classes
+//*****************************************************************************
+
+ADC_peripheral  adc_port_a(ADC1, RCC_ADC1, RCC_GPIOA, GPIOA);
+PWM_peripheral  pwm_timer_4(TIM4, TIM4_CNT, RCC_TIM4);
 SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
-
-PWM_peripheral  pwm_timer_4(TIM4, TIM4_CNT, RCC_TIM4);
 
 int16_t i;
 int16_t blink_flag = 0;
@@ -45,6 +73,11 @@ static void gpio_setup(void)
                   GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
 }
 
+/**
+ * @brief usart1_isr
+ * usart message interrupt handler
+ */
+
 void usart1_isr(void) 
 {
     if (usart_get_flag(USART1, USART_SR_RXNE)) 
@@ -54,6 +87,11 @@ void usart1_isr(void)
         gpio_toggle(LED_PORT, LED_PIN);
     }
 }
+
+/**
+ * @brief sys_tick_handler
+ * system counter interrupt handler
+ */
 
 void sys_tick_handler(void)
 {

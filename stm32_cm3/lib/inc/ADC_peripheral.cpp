@@ -1,4 +1,21 @@
+/**
+ * @file ADC_peripheral.cpp
+ * @author Isaac Lima (isaac.lima.sousa61@aluno.ifce.edu.br)
+ * @brief Source file for the ADC peripheral class drive.
+ * @version 0.1
+ * @date 2023-07-02
+ * 
+ */
+
 #include "ADC_peripheral.hpp"
+
+/**
+ * @brief ADC_peripheral constructor
+ * @param ADC_P_Select Selects which ADC PORT will be used
+ * @param RCC_ADSelect Selects which ADC peripheral will be activated
+ * @param RCC_GPSelect Selects which GPIO PORT will be activated
+ * @param GPIO_PortSelect Selects which GPIO PORT will be used
+ */
 
 ADC_peripheral::ADC_peripheral(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSelect,
                                 rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect)
@@ -41,10 +58,22 @@ ADC_peripheral::ADC_peripheral(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSele
     
 }
 
+/**
+ * @brief ADC_peripheral gpioSetup
+ * Activates the selected pin for ADC reading.
+ * @param GPIO_PIN_SELECT Selects which GPIO PIN will be used.
+ */
+
 void ADC_peripheral::gpioSetup(uint16_t GPIO_PIN_SELECT)
 {
     gpio_set_mode(GPIO_PORT_SELECT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO_PIN_SELECT);
 }
+
+/**
+ * @brief ADC_peripheral adc_read
+ * single read value for the selected channel
+ * @param ADC_CHANNEL_SELECT Selects which channel will be read.
+ */
 
 uint16_t ADC_peripheral::adc_read(uint8_t ADC_CHANNEL_SELECT)
 {

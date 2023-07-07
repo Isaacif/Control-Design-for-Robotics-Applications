@@ -1,12 +1,33 @@
+/**
+ * @file ADC_peripheral.hpp
+ * @author Isaac Lima (isaac.lima.sousa61@aluno.ifce.edu.br)
+ * @brief Head file for the ADC peripheral class drive.
+ * @version 0.1
+ * @date 2023-07-02
+ * 
+ */
+
 #ifndef ADC_peripheral_HPP
 #define ADC_peripheral_HPP
+
+//*****************************************************************************
+//  Using libopencm3 for peripheral interface.
+//  adc.h  Analog to Digital Converter file.
+//  gpio.h General Purpose Input Output file.
+//  rcc.h  Real Time Clock Control file.
+//*****************************************************************************
 
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 
-#include <stdint.h>
+#include <stdint.h>         // Using std number format
 
+
+/**
+ * @brief ADC_peripheral class
+ * Joins all ADC configurations 
+ */
 class ADC_peripheral
 {
     public:
