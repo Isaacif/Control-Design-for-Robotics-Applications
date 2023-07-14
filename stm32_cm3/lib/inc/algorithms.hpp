@@ -7,30 +7,32 @@
  * 
  */
 
-#define SYSTEM_PERIOD       0.0001
-#define RAMP_TS_ONE         0.2
-#define RAMP_TS_TWO         0.8 
-#define STACK_SIZE          100
+    #define SYSTEM_PERIOD       0.0001
+    #define RAMP_TS_ONE         0.2
+    #define RAMP_TS_TWO         0.8 
+    #define STACK_SIZE          100
 
 #include <vector>
+#include <cstdlib>
 #include <stdint.h>   
 
-#ifndef utills_HPP
-#define utills_HPP
+#ifndef algorithms_HPP
+#define algorithms_HPP
 
 class ADPI_Controller
 {
     public:
-        float ramp_Coef;
         float c_state_Kp;
         float c_Ki;
+        float control_action;
 
         bool setpointchanged;
 
         std::vector<float> u = {0};
+        std::vector<float> u_i = {0};
         std::vector<float> e = {};
 
-        ADPI_Controller(float Kp, float Ki, float rCoef, float setpoint);
+        ADPI_Controller(float Kp, float Ki, float setpoint);
 
         void configureSP(float setpoint);
         float computeADKp();
@@ -41,9 +43,11 @@ class ADPI_Controller
         float error_k;
         float max_error;
         float ADKp;
-        float control_action;
 
-        float Kp_min = 0.02;
+        float p_action;
+        float i_action;
+
+        float Kp_min = 0.5;
 };  
 
 #endif

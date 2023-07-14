@@ -58,7 +58,7 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
-ADPI_Controller motor_controller(1.25, 0.5, 0.75, 320);
+ADPI_Controller motor_controller(1.25, 0.5, 320);
 
 int16_t i;
 int16_t blink_flag = 0;
