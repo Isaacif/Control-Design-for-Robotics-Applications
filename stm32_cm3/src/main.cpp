@@ -33,6 +33,7 @@
 #include "ADC_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
 #include "USART_peripheral.hpp"
+#include "algorithms.hpp"
 
 #include <string.h>
 
@@ -57,9 +58,14 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
+ADPI_Controller motor_controller(1.25, 0.5, 0.75, 320);
+
 int16_t i;
 int16_t blink_flag = 0;
 uint32_t now;
+
+float sensor_k;
+float pwm_value_k;
 
 volatile char web_server_buffer[MAX_RX_BUFFER_SIZE];
 volatile uint16_t rx_buffer_index = 0;
@@ -101,8 +107,15 @@ void sys_tick_handler(void)
 int main(void)
 {
     gpio_setup();
+    pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
+    adc_port_a.gpioSetup(GPIO1);
+
     while(true)
     {
+        sensor_k = adc_port_a.adc_read(ADC_CHANNEL0);
+        pwm_value_k = motor_controller.computeControlAction(sensor_k);
+
+        pwm_timer_4.pwmWrite(pwm_value_k, TIM_OC1);
 
     }
 }
