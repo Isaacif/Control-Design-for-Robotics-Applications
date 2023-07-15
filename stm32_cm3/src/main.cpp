@@ -17,7 +17,7 @@
 #define StateGain 0.2
 #define SetPoint 430
 
-#define LED_PIN GPIO6
+#define LED_PIN GPIO7
 #define LED_PORT GPIOB
 #define USART_PORT USART1
 
@@ -58,7 +58,7 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
-ADPI_Controller motor_controller(1.25, 0.5, 320);
+ADPI_Controller motor_controller(1.25, 1, 3200);
 
 int16_t i;
 int16_t blink_flag = 0;
@@ -77,6 +77,8 @@ static void gpio_setup(void)
     rcc_periph_clock_enable(RCC_GPIOB);
     gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
                   GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
+    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
+    GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
 }
 
 /**
@@ -108,11 +110,13 @@ int main(void)
 {
     gpio_setup();
     pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
+    gpio_clear(GPIOB, GPIO7);
+    gpio_set(GPIOB, GPIO5);
     adc_port_a.gpioSetup(GPIO1);
 
     while(true)
     {
-        sensor_k = adc_port_a.adc_read(ADC_CHANNEL0);
+        sensor_k = adc_port_a.adc_read(ADC_CHANNEL1);
         pwm_value_k = motor_controller.computeControlAction(sensor_k);
 
         pwm_timer_4.pwmWrite(pwm_value_k, TIM_OC1);

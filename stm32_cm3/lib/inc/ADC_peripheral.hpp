@@ -35,7 +35,7 @@ class ADC_peripheral
         rcc_periph_clken RCC_ADC_SELECT;
 
         uint32_t GPIO_PORT_SELECT;
-        uint8_t ADC_PERIPHERAL_SELECT;
+        uint32_t ADC_PERIPHERAL_SELECT;
 
         ADC_peripheral(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSelect,
                        rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect);
@@ -45,6 +45,7 @@ class ADC_peripheral
 
     private:
        uint32_t rcc_apb2_frequency = 72000000;
+       uint8_t channel_array[3] = { 1, 1, ADC_CHANNEL1};
 };
 
 #endif 

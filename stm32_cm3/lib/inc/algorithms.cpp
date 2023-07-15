@@ -23,7 +23,7 @@ void ADPI_Controller::configureSP(float setpoint)
 
 float ADPI_Controller::computeADKp()
 {   
-    uint16_t x = 1/e.back();
+    float x = 1/e.back();
     float Kp;
     
     if(setpointchanged)
@@ -53,6 +53,10 @@ float ADPI_Controller::computeADKp()
 float ADPI_Controller::computeControlAction(float sensor_k)
 {
     error_k = r_k - sensor_k;
+    if (error_k < 0)
+    {
+        return 0;
+    }
     e.push_back(error_k);
     if(e.size() > STACK_SIZE)
     {
