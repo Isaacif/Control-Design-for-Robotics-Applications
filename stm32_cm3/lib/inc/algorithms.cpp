@@ -72,3 +72,29 @@ float ADPI_Controller::computeControlAction(float sensor_k)
     
     return control_action;
 }
+
+void ISubject::Attach(IObserver *observer)
+{
+    observers.push_back(observer);
+}
+
+void ISubject::Detach(IObserver *observer)
+{
+    auto iterator = std::find(observers.begin(), observers.end(), observer);
+
+    if (iterator != observers.end()) 
+    { 
+        observers.erase(iterator); 
+    }
+}
+
+void ISubject::Notify()
+{
+    observers[Joint]->Update(set_point); 
+}
+
+void ISubject::setState(uint8_t Joint, float set_point)
+{
+    this->set_point = set_point;
+    this->Joint = Joint;
+}
