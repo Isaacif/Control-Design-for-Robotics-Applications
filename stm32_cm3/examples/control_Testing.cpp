@@ -17,7 +17,7 @@
 #define StateGain 0.2
 #define SetPoint 430
 
-#define LED_PIN GPIO8
+#define LED_PIN GPIO7
 #define LED_PORT GPIOB
 #define USART_PORT USART1
 
@@ -33,7 +33,7 @@
 #include "ADC_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
 #include "USART_peripheral.hpp"
-#include "controller.hpp"
+#include "algorithms.hpp"
 
 #include <string.h>
 
@@ -56,8 +56,7 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
-ADPI_Controller motor_controller_one(1.25, 1, 3200);
-ISubject system_manager;
+ADPI_Controller motor_controller(1.25, 1, 3200);
 
 int16_t i;
 int16_t blink_flag = 0;
@@ -109,22 +108,16 @@ int main(void)
 {
     gpio_setup();
     pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
-    adc_port_a.gpioSetup(GPIO1);
     gpio_clear(GPIOB, GPIO7);
     gpio_set(GPIOB, GPIO5);
-
-    loop_parameters_t joint_one_pr;
-    joint_one_pr.timer_id_period = SYSTEM_PERIOD;
-    joint_one_pr.set_point_id = 3200;
-    controller joint_one = controller(0, GPIOB, GPIO7, 
-                                      &adc_port_a, &motor_controller_one
-                                      &pwm_timer_4, RCC_GPIOB);
-    joint_one.attach_parameters(joint_one_pr);
-
-    system_manager.Attach(&joint_one);
+    adc_port_a.gpioSetup(GPIO1);
 
     while(true)
     {
-        joint_one.loop()
+        sensor_k = adc_port_a.adc_read(ADC_CHANNEL1);
+        pwm_value_k = motor_controller.computeControlAction(sensor_k);
+
+        pwm_timer_4.pwmWrite(pwm_value_k, TIM_OC1);
+
     }
 }
