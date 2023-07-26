@@ -34,6 +34,7 @@
 #include "SYS_TIMER_peripheral.hpp"
 #include "USART_peripheral.hpp"
 #include "controller.hpp"
+#include "algorithms.hpp"
 
 #include <string.h>
 
@@ -116,15 +117,16 @@ int main(void)
     loop_parameters_t joint_one_pr;
     joint_one_pr.timer_id_period = SYSTEM_PERIOD;
     joint_one_pr.set_point_id = 3200;
-    controller joint_one = controller(0, GPIOB, GPIO7, 
-                                      &adc_port_a, &motor_controller_one
-                                      &pwm_timer_4, RCC_GPIOB);
+    controller joint_one(0, GPIOB, GPIO7, 
+                         &adc_port_a, &motor_controller_one,
+                         &pwm_timer_4, RCC_GPIOB);
+
     joint_one.attach_parameters(joint_one_pr);
 
     system_manager.Attach(&joint_one);
 
     while(true)
     {
-        joint_one.loop()
+        joint_one.loop();
     }
 }

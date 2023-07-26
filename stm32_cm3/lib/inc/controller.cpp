@@ -1,6 +1,6 @@
 #include "controller.hpp"
 
-controller::controller(int id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
+controller::controller(uint8_t id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
                        ADC_peripheral *sensor, ADPI_Controller *jcontroller, 
                        PWM_peripheral *output, rcc_periph_clken RCC_GPIOP)
 {

@@ -48,7 +48,7 @@ class controller : public IObserver
         PWM_peripheral *u_output;
         loop_parameters_t control_parameters;
 
-        controller(int id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
+        controller(uint8_t id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
                    ADC_peripheral *a_sensor, ADPI_Controller *Ji_controller, 
                    PWM_peripheral *u_output, rcc_periph_clken RCC_GPIOP);
 

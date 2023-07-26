@@ -73,10 +73,9 @@ class ISubject
         uint8_t Joint;
         float set_point;   
 
-        virtual ~ISubject(){};
-        virtual void Attach(IObserver *observer) = 0;
-        virtual void Detach(IObserver *observer) = 0;
-        virtual void Notify() = 0;
+        void Attach(IObserver *observer);
+        void Detach(IObserver *observer);
+        void Notify();
         void setState(uint8_t Joint, float set_point);
 };
 
