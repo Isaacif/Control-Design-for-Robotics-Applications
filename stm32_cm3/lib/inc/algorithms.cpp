@@ -99,8 +99,8 @@ void ISubject::Notify()
     observers[Joint]->Update(set_point); 
 }
 
-void ISubject::setState(uint8_t Joint, float set_point)
+void ISubject::setState(uint8_t Joint, float spoint)
 {
-    this->set_point = set_point;
+    this->set_point = spoint;
     this->Joint = Joint;
 }

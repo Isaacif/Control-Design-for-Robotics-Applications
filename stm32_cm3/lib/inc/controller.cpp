@@ -1,10 +1,10 @@
 #include "controller.hpp"
 
-controller::controller(uint8_t id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
+controller::controller(uint8_t joint_id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
                        ADC_peripheral *sensor, ADPI_Controller *jcontroller, 
                        PWM_peripheral *output, rcc_periph_clken RCC_GPIOP)
 {
-    this->id = id, GPIO_PORT_INB = GPORT_INB, GPIO_PIN_INB = GPIN_INB;
+    this->id = joint_id, GPIO_PORT_INB = GPORT_INB, GPIO_PIN_INB = GPIN_INB;
     RCC_GPIO_INB = RCC_GPIOP;
     a_sensor = sensor;
     Ji_controller = jcontroller;
@@ -16,9 +16,9 @@ controller::controller(uint8_t id, uint32_t GPORT_INB, uint32_t GPIN_INB,
     gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
 }
 
-void controller::Update(float set_point)
+void controller::Update(float spoint)
 {
-    this->set_point = set_point;
+    this->set_point = spoint;
 }
 
 void controller::loop()
@@ -28,7 +28,7 @@ void controller::loop()
     u_output->pwmWrite(pwm_value_k, JOINT_PWM_INPUT[id]);
 }
 
-float controller::pwm_mapping(float pwm_value)
+void controller::pwm_mapping(float pwm_value)
 {   
     if(pwm_value > 0)
     {

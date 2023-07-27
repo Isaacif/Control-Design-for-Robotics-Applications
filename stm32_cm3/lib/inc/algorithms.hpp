@@ -76,7 +76,7 @@ class ISubject
         void Attach(IObserver *observer);
         void Detach(IObserver *observer);
         void Notify();
-        void setState(uint8_t Joint, float set_point);
+        void setState(uint8_t Joint, float spoint);
 };
 
 #endif

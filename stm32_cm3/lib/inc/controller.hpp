@@ -55,8 +55,8 @@ class controller : public IObserver
 
         void attach_parameters(loop_parameters_t c_parameters);
         virtual void loop();
-        virtual void Update(float set_point) override;
-        float pwm_mapping(float pwm_value);
+        virtual void Update(float spoint) override;
+        void pwm_mapping(float pwm_value);
 
     private:
         int32_t negative_duty_cycle;
