@@ -39,6 +39,7 @@ class controller : public IObserver
         float sensor_k;
         float pwm_value_k;
 
+        uint32_t time_period;
         uint32_t GPIO_PORT_INB;
         uint32_t GPIO_PIN_INB;
         rcc_periph_clken RCC_GPIO_INB;

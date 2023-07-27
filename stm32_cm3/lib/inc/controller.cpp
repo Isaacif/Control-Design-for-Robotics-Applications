@@ -24,7 +24,7 @@ void controller::Update(float set_point)
 void controller::loop()
 {
     sensor_k = a_sensor->adc_read(JOINT_ANGLE_OBSERVER[id]);
-    pwm_value_k = Ji_controller->computeControlAction(sensor_k);
+    pwm_value_k = Ji_controller->computeControlAction(sensor_k, this->time_period);
     u_output->pwmWrite(pwm_value_k, JOINT_PWM_INPUT[id]);
 }
 

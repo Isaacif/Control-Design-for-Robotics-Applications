@@ -110,23 +110,30 @@ int main(void)
 {
     gpio_setup();
     pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
+    pwm_timer_4.gpioSetup(TIM_OC2, GPIOB, GPIO8, RCC_GPIOB);
     adc_port_a.gpioSetup(GPIO1);
+    adc_port_a.gpioSetup(GPIO2);
     gpio_clear(GPIOB, GPIO7);
     gpio_set(GPIOB, GPIO5);
 
-    loop_parameters_t joint_one_pr;
-    joint_one_pr.timer_id_period = SYSTEM_PERIOD;
-    joint_one_pr.set_point_id = 3200;
     controller joint_one(0, GPIOB, GPIO7, 
                          &adc_port_a, &motor_controller_one,
                          &pwm_timer_4, RCC_GPIOB);
 
-    joint_one.attach_parameters(joint_one_pr);
+    controller joint_h(1, GPIOB, GPIO9, 
+                         &adc_port_a, &motor_controller_one,
+                         &pwm_timer_4, RCC_GPIOB);
 
+    joint_one.time_period = g_counter_millis;
+    joint_h.time_period = g_counter_millis;
     system_manager.Attach(&joint_one);
+    system_manager.Attach(&joint_h);
 
     while(true)
-    {
+    {   
+        joint_one.time_period = g_counter_millis - joint_one.time_period;
         joint_one.loop();
+        joint_h.time_period = g_counter_millis - joint_h.time_period;
+        joint_h.loop();
     }
 }

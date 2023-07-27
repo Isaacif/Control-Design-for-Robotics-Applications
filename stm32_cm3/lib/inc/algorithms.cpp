@@ -50,13 +50,13 @@ float ADPI_Controller::computeADKp()
     return Kp;
 }
 
-float ADPI_Controller::computeControlAction(float sensor_k)
+float ADPI_Controller::computeControlAction(float sensor_k, float time_period)
 {
     error_k = r_k - sensor_k;
     if (error_k < 0)
     {
         p_action = (c_state_Kp+Kp_min)*e.back();
-        i_action = (c_Ki*(SYSTEM_PERIOD*e.back()) + u_i.back());
+        i_action = (c_Ki*(SYSTEM_COUNT_100uS*time_period*e.back()) + u_i.back());
         control_action = p_action + i_action;
         u_i.push_back(i_action);
         u.push_back(control_action);
@@ -71,7 +71,7 @@ float ADPI_Controller::computeControlAction(float sensor_k)
 
     ADKp = computeADKp();
     p_action = ADKp*e.back();
-    i_action = (c_Ki*(SYSTEM_PERIOD*e.back()) + u_i.back());
+    i_action = (c_Ki*(SYSTEM_COUNT_100uS*time_period*e.back()) + u_i.back());
     control_action = p_action + i_action;
     u_i.push_back(i_action);
     u.push_back(control_action);

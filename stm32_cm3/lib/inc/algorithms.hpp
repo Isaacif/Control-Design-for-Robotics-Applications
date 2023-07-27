@@ -20,7 +20,7 @@
 
 #include "ADC_peripheral.hpp"
 #include "PWM_peripheral.hpp"
-
+#include "SYS_TIMER_peripheral.hpp"
 
 #ifndef algorithms_HPP
 #define algorithms_HPP
@@ -42,7 +42,7 @@ class ADPI_Controller
 
         void configureSP(float setpoint);
         float computeADKp();
-        float computeControlAction(float error);
+        float computeControlAction(float sensor_k, float time_period);
 
     private:
         float r_k;
