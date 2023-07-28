@@ -24,7 +24,6 @@
 
 #ifndef algorithms_HPP
 #define algorithms_HPP
-
 class ADPI_Controller
 {
     public:
