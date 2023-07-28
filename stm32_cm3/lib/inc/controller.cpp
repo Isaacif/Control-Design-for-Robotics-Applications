@@ -1,7 +1,7 @@
 #include "controller.hpp"
 
 controller::controller(uint8_t joint_id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
-                       ADC_peripheral *sensor, ADPI_Controller *jcontroller, 
+                       ADC_peripheral *sensor, P_Controller *jcontroller, 
                        PWM_peripheral *output, rcc_periph_clken RCC_GPIOP)
 {
     this->id = joint_id, GPIO_PORT_INB = GPORT_INB, GPIO_PIN_INB = GPIN_INB;
@@ -25,14 +25,14 @@ void controller::loop()
 {
     sensor_k = a_sensor->adc_read(JOINT_ANGLE_OBSERVER[id]);
     pwm_value_k = Ji_controller->computeControlAction(sensor_k, this->time_period);
-    u_output->pwmWrite(pwm_value_k, JOINT_PWM_INPUT[id]);
+    this->pwm_mapping(pwm_value_k);
 }
 
 void controller::pwm_mapping(float pwm_value)
 {   
     if(pwm_value > 0)
     {
-        u_output->pwmWrite(pwm_value_k, JOINT_PWM_INPUT[id]);
+        u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[id]);
         gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
     }
     else if(pwm_value < 0)

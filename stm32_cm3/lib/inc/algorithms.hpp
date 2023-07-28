@@ -24,6 +24,24 @@
 
 #ifndef algorithms_HPP
 #define algorithms_HPP
+
+class P_Controller
+{
+    public:
+        float c_state_Kp;
+        float control_action;
+
+        bool setpointchanged;
+
+        P_Controller(float Kp, float setpoint);
+
+        void configureSP(float setpoint);
+        float computeControlAction(float sensor_k, float time_period);
+
+    private:
+        float r_k;
+        float error_k;
+};  
 class ADPI_Controller
 {
     public:
@@ -52,7 +70,7 @@ class ADPI_Controller
         float p_action;
         float i_action;
 
-        float Kp_min = 0.5;
+        float Kp_min = 0.1;
 };  
 
 class IObserver 
@@ -75,7 +93,7 @@ class ISubject
         void Attach(IObserver *observer);
         void Detach(IObserver *observer);
         void Notify();
-        void setState(uint8_t Joint, float spoint);
+        void setState(uint8_t sJoint, float spoint);
 };
 
 #endif
