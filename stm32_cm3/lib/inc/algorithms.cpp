@@ -9,6 +9,26 @@
 
 #include "algorithms.hpp"
 
+P_Controller::P_Controller(float Kp, float setpoint)
+{
+    c_state_Kp = Kp, r_k = setpoint;
+    setpointchanged = true;
+}
+
+void P_Controller::configureSP(float setpoint)
+{
+    r_k = setpoint;
+    setpointchanged = true;
+}
+
+float P_Controller::computeControlAction(float sensor_k, float time_period)
+{
+    error_k = r_k - sensor_k;  
+    control_action = c_state_Kp*error_k;
+    
+    return control_action;
+}
+
 ADPI_Controller::ADPI_Controller(float Kp, float Ki, float setpoint)
 {
     c_state_Kp = Kp; c_Ki = Ki, r_k = setpoint;
@@ -53,25 +73,26 @@ float ADPI_Controller::computeADKp()
 float ADPI_Controller::computeControlAction(float sensor_k, float time_period)
 {
     error_k = r_k - sensor_k;
-    if (error_k < 0)
-    {
-        p_action = (c_state_Kp+Kp_min)*e.back();
-        i_action = (c_Ki*(SYSTEM_COUNT_100uS*time_period*e.back()) + u_i.back());
-        control_action = p_action + i_action;
-        u_i.push_back(i_action);
-        u.push_back(control_action);
-        return control_action;
-    }
-    
     e.push_back(error_k);
     if(e.size() > STACK_SIZE)
     {
         e.erase(e.begin());
     }
 
+    if (error_k < 0)
+    {
+        p_action = (c_state_Kp+Kp_min)*e.back();
+        i_action = (c_Ki*(SYSTEM_PERIOD*time_period*e.back()) + u_i.back());
+        control_action = p_action + i_action;
+        u_i.push_back(i_action);
+        u.push_back(control_action);
+        return control_action;
+    }
+    
+
     ADKp = computeADKp();
     p_action = ADKp*e.back();
-    i_action = (c_Ki*(SYSTEM_COUNT_100uS*time_period*e.back()) + u_i.back());
+    i_action = (c_Ki*(SYSTEM_PERIOD*time_period*e.back()) + u_i.back());
     control_action = p_action + i_action;
     u_i.push_back(i_action);
     u.push_back(control_action);
@@ -99,8 +120,8 @@ void ISubject::Notify()
     observers[Joint]->Update(set_point); 
 }
 
-void ISubject::setState(uint8_t Joint, float spoint)
+void ISubject::setState(uint8_t sJoint, float spoint)
 {
     this->set_point = spoint;
-    this->Joint = Joint;
+    this->Joint = sJoint;
 }

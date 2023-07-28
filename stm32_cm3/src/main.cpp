@@ -22,6 +22,7 @@
 #define USART_PORT USART1
 
 #define system_frequency_10Khz    1e4
+#define system_frequency_1Khz    1e3
 
 //*****************************************************************************
 // importing all the implemented drivers classes 
@@ -57,7 +58,7 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
-ADPI_Controller motor_controller_one(1.25, 1, 3200);
+P_Controller motor_controller_one(1.2, 3200);
 ISubject system_manager;
 
 int16_t i;
@@ -110,9 +111,9 @@ int main(void)
 {
     gpio_setup();
     pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
-    pwm_timer_4.gpioSetup(TIM_OC2, GPIOB, GPIO8, RCC_GPIOB);
+    //pwm_timer_4.gpioSetup(TIM_OC2, GPIOB, GPIO8, RCC_GPIOB);
     adc_port_a.gpioSetup(GPIO1);
-    adc_port_a.gpioSetup(GPIO2);
+    //adc_port_a.gpioSetup(GPIO2);
     gpio_clear(GPIOB, GPIO7);
     gpio_set(GPIOB, GPIO5);
 
@@ -120,20 +121,19 @@ int main(void)
                          &adc_port_a, &motor_controller_one,
                          &pwm_timer_4, RCC_GPIOB);
 
-    controller joint_h(1, GPIOB, GPIO9, 
+    /* controller joint_h(1, GPIOB, GPIO9, 
                          &adc_port_a, &motor_controller_one,
                          &pwm_timer_4, RCC_GPIOB);
+                         */
 
     joint_one.time_period = g_counter_millis;
-    joint_h.time_period = g_counter_millis;
+    //joint_h.time_period = g_counter_millis;
     system_manager.Attach(&joint_one);
-    system_manager.Attach(&joint_h);
+    //system_manager.Attach(&joint_h);
 
     while(true)
     {   
         joint_one.time_period = g_counter_millis - joint_one.time_period;
         joint_one.loop();
-        joint_h.time_period = g_counter_millis - joint_h.time_period;
-        joint_h.loop();
     }
 }
