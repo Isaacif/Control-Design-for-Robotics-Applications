@@ -34,10 +34,10 @@ class controller : public IObserver
         std::vector<IObserver *> observers;
 
         int id;
-        float set_point = 0;    
+        uint16_t set_point = 0;    
 
-        float sensor_k;
-        float pwm_value_k;
+        uint16_t sensor_k;
+        uint16_t pwm_value_k;
 
 
         uint32_t time_period;
@@ -46,12 +46,12 @@ class controller : public IObserver
         rcc_periph_clken RCC_GPIO_INB;
 
         ADC_peripheral *a_sensor;
-        P_Controller *Ji_controller;
+        ADPI_Controller *Ji_controller;
         PWM_peripheral *u_output;
         loop_parameters_t control_parameters;
 
         controller(uint8_t id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
-                   ADC_peripheral *a_sensor, P_Controller *Ji_controller, 
+                   ADC_peripheral *a_sensor, ADPI_Controller *Ji_controller, 
                    PWM_peripheral *u_output, rcc_periph_clken RCC_GPIOP);
 
         void attach_parameters(loop_parameters_t c_parameters);

@@ -37,7 +37,6 @@
 #include "controller.hpp"
 #include "algorithms.hpp"
 
-#include <string.h>
 
 /* Timer 4 and Timer 3 are reserved for PWM applications
    Timer 2 and other timers can be used for general tasks
@@ -45,8 +44,6 @@
 */
 
 const char *message = "alive";
-
-
 
 //*****************************************************************************
 // Create all the drivers classes
@@ -109,6 +106,8 @@ void sys_tick_handler(void)
 
 int main(void)
 {
+    int value = 200;
+    uint16_t bytes[sizeof(float)];
     gpio_setup();
     pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
     //pwm_timer_4.gpioSetup(TIM_OC2, GPIOB, GPIO8, RCC_GPIOB);
@@ -137,6 +136,7 @@ int main(void)
         {
             joint_one.time_period = g_counter_millis - joint_one.time_period;
             joint_one.loop();
+            send_integer(circularBufferGetRelativeElement(&(motor_controller_one.e), -1), USART1);
             g_counter_millis = 0;
         }
     }

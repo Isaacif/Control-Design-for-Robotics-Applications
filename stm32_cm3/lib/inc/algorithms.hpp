@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 
+#include "utils.h"
 #include "ADC_peripheral.hpp"
 #include "PWM_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
@@ -47,13 +48,16 @@ class ADPI_Controller
     public:
         float c_state_Kp;
         float c_Ki;
-        float control_action;
+        int16_t control_action;
+
+        int16_t p_action;
+        int16_t i_action;
 
         bool setpointchanged;
 
-        std::vector<float> u = {0};
-        std::vector<float> u_i = {0};
-        std::vector<float> e = {};
+        sensors_circular_buffer_t u;
+        sensors_circular_buffer_t u_i;
+        sensors_circular_buffer_t e;
 
         ADPI_Controller(float Kp, float Ki, float setpoint);
 
@@ -63,14 +67,10 @@ class ADPI_Controller
 
     private:
         float r_k;
-        float error_k;
-        float max_error;
+        int16_t error_k;
+        int16_t max_error;
         float ADKp;
-
-        float p_action;
-        float i_action;
-
-        float Kp_min = 0.1;
+        float Kp_min = 0.5;
 };  
 
 class IObserver 

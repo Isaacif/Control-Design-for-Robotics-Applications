@@ -7,7 +7,10 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/usart.h>
+#include <string.h>
+#include <cstdio>
 
+void send_integer(int value, uint32_t USART_REG); 
 class USART_peripheral
 {
     public:

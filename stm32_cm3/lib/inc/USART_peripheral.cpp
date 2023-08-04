@@ -34,4 +34,17 @@ void USART_peripheral::usartSend(const char *characters)
         ++characters;
     }
 }
+
+void send_integer(int value, uint32_t USART_REG) 
+{
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%d\n", value);
+
+    int i = 0;
+    while (buffer[i] != '\0') 
+    {
+        usart_send_blocking(USART_REG, buffer[i]);
+        i++;
+    }
+}
                             

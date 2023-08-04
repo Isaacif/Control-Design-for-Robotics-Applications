@@ -33,6 +33,9 @@ ADPI_Controller::ADPI_Controller(float Kp, float Ki, float setpoint)
 {
     c_state_Kp = Kp; c_Ki = Ki, r_k = setpoint;
     setpointchanged = true;
+
+    circularBufferPush(&u, 0);
+    circularBufferPush(&u_i, 0);
 }
 
 void ADPI_Controller::configureSP(float setpoint)
@@ -43,21 +46,21 @@ void ADPI_Controller::configureSP(float setpoint)
 
 float ADPI_Controller::computeADKp()
 {   
-    float x = 1/e.back();
+    float x = 1/circularBufferGetRelativeElement(&e, -1);
     float Kp;
     
     if(setpointchanged)
     {
-        max_error = e.back();
+        max_error = 1/circularBufferGetRelativeElement(&e, -1);
         setpointchanged = false;
     }
 
-    if(e.back() > max_error*RAMP_TS_ONE)
+    if(circularBufferGetRelativeElement(&e, -1) > max_error*RAMP_TS_ONE)
     { 
         Kp = std::abs(Kp_min + c_state_Kp*x*max_error*RAMP_TS_ONE);
     }
 
-    else if(e.back() >= RAMP_TS_TWO)
+    else if(circularBufferGetRelativeElement(&e, -1) >= RAMP_TS_TWO)
     {
         Kp = std::abs(c_state_Kp+Kp_min);
     }
@@ -73,29 +76,25 @@ float ADPI_Controller::computeADKp()
 float ADPI_Controller::computeControlAction(float sensor_k, float time_period)
 {
     error_k = r_k - sensor_k;
-    e.push_back(error_k);
-    if(e.size() > STACK_SIZE)
-    {
-        e.erase(e.begin());
-    }
+    circularBufferPush(&e, error_k);
 
     if (error_k < 0)
     {
-        p_action = (c_state_Kp+Kp_min)*e.back();
-        i_action = (c_Ki*(SYSTEM_PERIOD*time_period*e.back()) + u_i.back());
-        control_action = p_action + i_action;
-        u_i.push_back(i_action);
-        u.push_back(control_action);
+        p_action = (c_state_Kp)*error_k;
+        i_action = (c_Ki*(SYSTEM_PERIOD*time_period*error_k) + circularBufferGetRelativeElement(&u_i, -1));
+        control_action = p_action;
+        circularBufferPush(&u_i, i_action);
+        circularBufferPush(&u, control_action);
         return control_action;
     }
     
 
     ADKp = computeADKp();
-    p_action = ADKp*e.back();
-    i_action = (c_Ki*(SYSTEM_PERIOD*time_period*e.back()) + u_i.back());
-    control_action = p_action + i_action;
-    u_i.push_back(i_action);
-    u.push_back(control_action);
+    p_action = ADKp*error_k;
+    i_action = (c_Ki*(SYSTEM_PERIOD*time_period*error_k) + circularBufferGetRelativeElement(&u_i, -1));
+    control_action = p_action;
+    circularBufferPush(&u_i, i_action);
+    circularBufferPush(&u, control_action);
     
     return control_action;
 }

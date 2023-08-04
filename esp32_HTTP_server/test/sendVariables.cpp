@@ -37,6 +37,9 @@
 //
 //*****************************************************************************
 
+const int numBytes = 4; // Number of bytes to read from STM32
+
+
 const char* NETWORK_SSID = "MOB-ADRIANO";              // Network Login setup
 const char* NETWORK_PASSWORD = "1801bianca";          // Network password setup
 
@@ -111,17 +114,30 @@ void setup()
  * for both HTTP and USART
  */
 
-void loop() 
-{
-    espWebServer.handleClient();
+void loop() {
+    char buffer[20];
 
-
-    if (SerialPort.available()) 
-    {
-        String receivedMessage = SerialPort.readString();
-        Serial.print("Received message: ");
-        Serial.println(receivedMessage);
+    // Wait for the string from STM32
+    while (!SerialPort.available()) {
+        // Wait until data is available
     }
-    
+
+    // Read the received string from STM32
+    int bytesRead = SerialPort.readBytesUntil('\n', buffer, sizeof(buffer) - 1);
+
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0'; // Null-terminate the string
+        // Parse the received string back to an integer
+        int receivedValue = atoi(buffer);
+
+        // Do something with the received integer value (print it in this case)
+        Serial.print("Received value from STM32: ");
+        Serial.println(receivedValue);
+    } else {
+        // No data received or an error occurred
+        Serial.println("Error reading data from STM32.");
+    }
+
+    delay(100);
 }
 
