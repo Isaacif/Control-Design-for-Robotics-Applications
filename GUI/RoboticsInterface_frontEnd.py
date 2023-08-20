@@ -35,7 +35,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import time
-
+import requests
 
 """
 main GUI class: 
@@ -46,7 +46,7 @@ class robotGUI():
     Init function
     Loads the world model and creates the robot variables
     """
-    def __init__(self, worldFileName, ) -> None:
+    def __init__(self, worldFileName) -> None:
         self.world = WorldModel()
         self.world.readFile(worldFileName)
         self.robot = self.world.robot(0)
@@ -59,6 +59,9 @@ class robotGUI():
         self.maxControllerError = 0.5
 
         self.i = 0 # QGrid row/column index
+
+        self.esp_ip = "192.168.1.7"
+        self.url = f"http://{self.esp_ip}/"
 
     """
     Screen Rendering and animating function
@@ -173,10 +176,9 @@ class robotGUI():
         to the comunication interface.
         it does so by HTTP Post method, using a JOINT/ANGLE protocol.
         """
-
-        #TODO 
-        # Implement HTTP procotol and function calls
-        print("NOT IMPLEMENTED !!")
+        data = {"Joint": str(self.desired_joint), "Angle": str(self.desired_angle)}
+        response = requests.post(self.url, data=data)
+        print(response.text)
 
 if __name__ == '__main__':
     robotic_gui = robotGUI("tx90scenario0.xml")
