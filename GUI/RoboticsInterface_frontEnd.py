@@ -54,6 +54,8 @@ class robotGUI():
         self.desired_angle = 0
         self.desired_joint = 0
         self.PendingMoviment = False
+        self.PendingRequest = False
+        self.Startup = True
 
         self.maxAngleMoviment = 6.282 #2*pi
         self.maxControllerError = 0.5
@@ -84,14 +86,21 @@ class robotGUI():
                     joint_angle = self.robot.getConfig()[self.desired_joint]
                     if joint_angle >= self.maxAngleMoviment:
                         joint_angle = 0 
+
                     if (joint_angle <= self.desired_angle-self.maxControllerError 
                         or joint_angle>= self.desired_angle + self.maxControllerError):
                         self.robot.setDOFPosition(self.desired_joint, joint_angle+0.01)
                         time.sleep(0.01) 
-                    else:                            
+
+                    elif not(self.Startup) and not(self.PendingRequest):                            
                         self.PendingMoviment = False
                         self.HTTP_send_comands()
                         break
+                    else:
+                        self.PendingMoviment = False
+                        self.Startup = False
+            else:
+               time.sleep(0.25) 
 
         vis.kill()  
 
@@ -108,7 +117,7 @@ class robotGUI():
         line_edits = []
 
         self.window = QMainWindow()
-        glwidget.setMaximumSize(10000,10000)
+        glwidget.setMaximumSize(10000, 10000)
         area = QWidget(self.window)
 
         layout = QGridLayout()
@@ -145,7 +154,7 @@ class robotGUI():
     so the loaded moviment (Joint/Angle) is executed.
     """
     def clickHandler(self):
-        print("SENDING")
+        print("SEND REQUEST")
         self.PendingMoviment = True
         
 
@@ -176,10 +185,17 @@ class robotGUI():
         to the comunication interface.
         it does so by HTTP Post method, using a JOINT/ANGLE protocol.
         """
+        self.PendingRequest = True
+        print("Sending data")
         data = {"Joint": str(self.desired_joint), "Angle": str(self.desired_angle)}
-        response = requests.post(self.url, data=data)
-        print(response.text)
+        try:
+            response = requests.post(self.url, data=data, timeout=5)
+            print(response.text)
+        except Exception as error:
+            print("Communication failed\n")
+            print(error)
 
+        
 if __name__ == '__main__':
     robotic_gui = robotGUI("tx90scenario0.xml")
     robotic_gui.show()

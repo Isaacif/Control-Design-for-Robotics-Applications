@@ -1,0 +1,48 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                "C:/Users/isaac/.platformio/packages/framework-libopencm3",
+                "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
+                "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                    "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                    "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                    "C:/Users/isaac/.platformio/packages/framework-libopencm3",
+                    "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
+                    "C:/Users/isaac/OneDrive/Documentos/Isaac/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60110",
+                "STM32F103xB",
+                "STM32F1",
+                "F_CPU=72000000L",
+                ""
+            ],
+            "compilerPath": "C:/Users/isaac/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/bin/arm-none-eabi-gcc.exe",
+            "compilerArgs": [
+                "-mthumb",
+                "-mthumb",
+                "-mcpu=cortex-m3",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
