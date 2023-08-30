@@ -57,12 +57,15 @@ class robotGUI():
         self.PendingRequest = False
         self.Startup = True
 
+        self.simulation = Simulator(self.world)
+        self.dt = 0.01
+
         self.maxAngleMoviment = 6.282 #2*pi
         self.maxControllerError = 0.5
 
         self.i = 0 # QGrid row/column index
 
-        self.esp_ip = "192.168.1.7"
+        self.esp_ip = "192.168.100.30"
         self.url = f"http://{self.esp_ip}/"
 
     """
@@ -80,28 +83,19 @@ class robotGUI():
         vis.add("world", self.world)
         vis.show()
         while vis.shown():
-            if(self.PendingMoviment):
-                print(self.desired_joint, self.desired_angle)
-                while True:
-                    joint_angle = self.robot.getConfig()[self.desired_joint]
-                    if joint_angle >= self.maxAngleMoviment:
-                        joint_angle = 0 
-
-                    if (joint_angle <= self.desired_angle-self.maxControllerError 
-                        or joint_angle>= self.desired_angle + self.maxControllerError):
-                        self.robot.setDOFPosition(self.desired_joint, joint_angle+0.01)
-                        time.sleep(0.01) 
-
-                    elif not(self.Startup) and not(self.PendingRequest):                            
-                        self.PendingMoviment = False
-                        self.HTTP_send_comands()
-                        break
-                    else:
-                        self.PendingMoviment = False
-                        self.Startup = False
-            else:
-               time.sleep(0.25) 
-
+            if self.PendingMoviment:
+                joint_angle = self.simulation.controller(0).getCommandedConfig()
+                joint_angle[self.desired_joint] = self.desired_angle
+                self.simulation.controller(0).setMilestone(joint_angle)
+                self.simulation.simulate(self.dt)
+                time.sleep(0.0125)
+                if self.simulation.controller(0).getCommandedVelocity()[self.desired_joint] == 0:
+                    self.PendingMoviment = False
+                    self.HTTP_send_comands()
+                    self.PendingRequest = False
+        
+            time.sleep(0.0125)
+            
         vis.kill()  
 
     """
@@ -174,7 +168,7 @@ class robotGUI():
             self.desired_joint = int(text)
             print('CONFIGURED')
         elif line_content[1] == 1:
-            self.desired_angle = int(text)
+            self.desired_angle = int(text)*0.01745329251
             print('CONFIGURED')
         
         line_edit.clear()
@@ -186,10 +180,12 @@ class robotGUI():
         it does so by HTTP Post method, using a JOINT/ANGLE protocol.
         """
         self.PendingRequest = True
+        self.desired_angle = round(651.25 * self.desired_angle)
+        print(self.desired_angle)
         print("Sending data")
         data = {"Joint": str(self.desired_joint), "Angle": str(self.desired_angle)}
         try:
-            response = requests.post(self.url, data=data, timeout=5)
+            response = requests.post(self.url, data=data, timeout=10)
             print(response.text)
         except Exception as error:
             print("Communication failed\n")

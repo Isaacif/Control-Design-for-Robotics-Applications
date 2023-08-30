@@ -37,10 +37,10 @@ class controller : public IObserver
         uint16_t set_point = 0;    
 
         uint16_t sensor_k;
-        uint16_t pwm_value_k;
+        int32_t pwm_value_k;
 
 
-        uint32_t time_period;
+        float time_period;
         uint32_t GPIO_PORT_INB;
         uint32_t GPIO_PIN_INB;
         rcc_periph_clken RCC_GPIO_INB;
@@ -56,8 +56,8 @@ class controller : public IObserver
 
         void attach_parameters(loop_parameters_t c_parameters);
         virtual void loop();
-        virtual void Update(float spoint) override;
-        void pwm_mapping(float pwm_value);
+        virtual void Update(int spoint) override;
+        void pwm_mapping(int32_t pwm_value);
 
     private:
         int32_t negative_duty_cycle;

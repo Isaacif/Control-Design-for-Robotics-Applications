@@ -48,10 +48,12 @@ class ADPI_Controller
     public:
         float c_state_Kp;
         float c_Ki;
-        int16_t control_action;
+        float control_action;
+        uint16_t r_k;
 
-        int16_t p_action;
-        int16_t i_action;
+
+        float p_action;
+        float i_action;
 
         bool setpointchanged;
 
@@ -59,16 +61,22 @@ class ADPI_Controller
         sensors_circular_buffer_t u_i;
         sensors_circular_buffer_t e;
 
-        ADPI_Controller(float Kp, float Ki, float setpoint);
+        ADPI_Controller(float Kp, float Ki, uint16_t setpoint);
 
         void configureSP(float setpoint);
         float computeADKp();
         float computeControlAction(float sensor_k, float time_period);
+        float control_action_threshold(float output_value);
+        float integrator_threshold(float output_value, float limit_error);
+
+        int16_t log_setpoint();
+        int16_t log_error();
+        float log_P_control_action();
+        float log_I_control_action();
 
     private:
-        float r_k;
-        int16_t error_k;
-        int16_t max_error;
+        float error_k;
+        float max_error;
         float ADKp;
         float Kp_min = 0.5;
 };  
@@ -79,7 +87,7 @@ class IObserver
         int id;
 
         virtual ~IObserver(){};
-        virtual void Update(float set_point);
+        virtual void Update(int set_point);
 };
 
 class ISubject 

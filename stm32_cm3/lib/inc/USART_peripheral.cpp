@@ -26,16 +26,17 @@ USART_peripheral::USART_peripheral(uint16_t USART_TX, uint16_t USART_RX, uint32_
 
 }
 
-void USART_peripheral::usartSend(const char *characters)
+void USART_peripheral::usartSend_char(const char *characters)
 {
     while(*characters != '\0')
     {
         usart_send_blocking(usart_register, (uint16_t)(*characters));
         ++characters;
     }
+    usart_send_blocking(usart_register, '\n');
 }
 
-void send_integer(int value, uint32_t USART_REG) 
+void USART_peripheral::usartSend_integer(int value) 
 {
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "%d\n", value);
@@ -43,7 +44,7 @@ void send_integer(int value, uint32_t USART_REG)
     int i = 0;
     while (buffer[i] != '\0') 
     {
-        usart_send_blocking(USART_REG, buffer[i]);
+        usart_send_blocking(usart_register, buffer[i]);
         i++;
     }
 }

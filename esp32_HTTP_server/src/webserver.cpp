@@ -16,6 +16,7 @@
 #define     WEB_SERVER_PORT     80  
 #define     RX_pin              16
 #define     TX_pin              17
+#define     BUFFER_SIZE         20
 
 //*****************************************************************************
 //
@@ -46,6 +47,8 @@ HardwareSerial SerialPort(2);               // USART object
 String Joint = "";                          // Joint value handler
 String Angle = "";                          // Angle value handler
 
+char message_buffer[BUFFER_SIZE];
+uint8_t bufferIndex = 0;
 
 /**
  * @brief requestHandler()
@@ -57,16 +60,15 @@ void requestHandler()
     if(espWebServer.hasArg("Joint"))        // Checks if the message has the Joint key.
     {
       Joint = espWebServer.arg("Joint");
-      espWebServer.send(200, "text/plain", "Message received: " + Joint);    // Gives a sucess indication.
-      SerialPort.println(Joint);            // Sends the data to the stm32.
+      //espWebServer.send(200, "text/plain", "Message received: " + Joint);    // Gives a sucess indication.
+      //SerialPort.println(Joint);            // Sends the data to the stm32.
     }
-    if (espWebServer.hasArg("Angle")) // Checks if the message has the Angle key.
+    if(espWebServer.hasArg("Angle")) // Checks if the message has the Angle key.
     {
       Angle = espWebServer.arg("Angle");
       espWebServer.send(200, "text/plain", "Message received: " + Angle); // Gives a sucess indication.
       SerialPort.println(Angle);            // Sends the data to the stm32.
       Serial.println("Sucessful Comunication. ");
-      SerialPort.println(Angle);
     }
     else 
     {
@@ -114,14 +116,26 @@ void setup()
 void loop() 
 {
     espWebServer.handleClient();
-
-
+    
     if (SerialPort.available()) 
     {
-        String receivedMessage = SerialPort.readString();
-        Serial.print("Received message: ");
-        Serial.println(receivedMessage);
+        char received_data = SerialPort.read();
+        if(received_data == '\n')
+        {
+            message_buffer[bufferIndex] = '\0';
+            bufferIndex = 0;
+            Serial.print("STM32: ");
+            Serial.println(message_buffer);
+        }
+        else
+        {
+            if (bufferIndex < BUFFER_SIZE - 1) 
+            {
+                message_buffer[bufferIndex] = received_data;
+                bufferIndex++;
+            }
+        }
     }
-    
+    delay(10);
 }
 

@@ -58,7 +58,8 @@ SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
 USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
-ADPI_Controller motor_controller_one(1.35, 0.05, 3200);
+ADPI_Controller motor_controller_one(45, 12.5, 3200);
+//P_Controller motor_controller_one(45, 3200);
 ISubject system_manager;
 
 int16_t i;
@@ -72,6 +73,15 @@ volatile char web_server_buffer[MAX_RX_BUFFER_SIZE];
 volatile uint16_t rx_buffer_index = 0;
 volatile uint8_t rx_data_ready = 0; 
 volatile char receivedChar = '\0';
+char receivedCharBuffer[20];
+uint8_t charIndex = 0;
+
+uint32_t loop_time = 0;
+uint32_t log_time = 0;
+
+int GlobalJointOneSP;
+
+bool updateSetPoint = false;
 
 static void gpio_setup(void)
 {
@@ -94,6 +104,19 @@ void usart1_isr(void)
         receivedChar = usart_recv(USART1);
         usart_send_blocking(USART1, receivedChar);
         gpio_toggle(LED_PORT, LED_PIN);
+
+        if(receivedChar == '\n')
+        { 
+            receivedCharBuffer[charIndex] = '\0';
+            GlobalJointOneSP = atoi(receivedCharBuffer);
+            charIndex = 0;
+            updateSetPoint = true;
+        }
+        else 
+        {
+            receivedCharBuffer[charIndex] = receivedChar;
+            charIndex = (charIndex + 1) % (sizeof(receivedCharBuffer) - 1);
+        }
     }
 }
 
@@ -130,14 +153,34 @@ int main(void)
     //joint_h.time_period = g_counter_millis;
     system_manager.Attach(&joint_one);
     //system_manager.Attach(&joint_h);
+    joint_one.time_period = SYSTEM_TICK_MS(10);
 
     while(true)
     {  
-        if(g_counter_millis > 1000)
+        if(g_counter_millis - loop_time > SYSTEM_TICK_MS(10))
         {
-            joint_one.time_period = g_counter_millis - joint_one.time_period;
             joint_one.loop();
-            g_counter_millis = 0;
+            loop_time = g_counter_millis;
+        }
+
+        if(g_counter_millis - log_time > SYSTEM_TICK_SEC(5))
+        {
+            serial_interface.usartSend_char("Error[k]: ");
+            serial_interface.usartSend_integer(motor_controller_one.log_error());
+            serial_interface.usartSend_char("Setpoint[k]: ");
+            serial_interface.usartSend_integer(motor_controller_one.log_setpoint());
+            serial_interface.usartSend_char("Prop action[k]: ");
+            serial_interface.usartSend_integer(motor_controller_one.log_P_control_action());
+            serial_interface.usartSend_char("Int action[k]: ");
+            serial_interface.usartSend_integer(motor_controller_one.log_I_control_action());
+
+            log_time = g_counter_millis;
+        }
+
+        if(updateSetPoint)
+        {
+            joint_one.Update(GlobalJointOneSP);
+            updateSetPoint = false;
         }
     }
 }

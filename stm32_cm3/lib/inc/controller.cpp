@@ -16,19 +16,20 @@ controller::controller(uint8_t joint_id, uint32_t GPORT_INB, uint32_t GPIN_INB,
     gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
 }
 
-void controller::Update(float spoint)
+void controller::Update(int spoint)
 {
     this->set_point = spoint;
+    Ji_controller->configureSP(spoint);
 }
 
 void controller::loop()
 {
     sensor_k = a_sensor->adc_read(JOINT_ANGLE_OBSERVER[id]);
-    pwm_value_k = Ji_controller->computeControlAction(sensor_k, this->time_period);
+    pwm_value_k = round(Ji_controller->computeControlAction(sensor_k, this->time_period));
     this->pwm_mapping(pwm_value_k);
 }
 
-void controller::pwm_mapping(float pwm_value)
+void controller::pwm_mapping(int32_t pwm_value)
 {   
     if(pwm_value > 0)
     {
@@ -37,13 +38,14 @@ void controller::pwm_mapping(float pwm_value)
     }
     else if(pwm_value < 0)
     {
-        negative_duty_cycle = CONTROL_ACTION_THRESHOLD - pwm_value;
+        negative_duty_cycle = CONTROL_ACTION_THRESHOLD + pwm_value;
         u_output->pwmWrite(negative_duty_cycle, JOINT_PWM_INPUT[id]);
         gpio_set(GPIO_PORT_INB, GPIO_PIN_INB);
     }
     else 
     {
         u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[id]);
+        gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
     }
 }
 
