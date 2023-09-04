@@ -63,5 +63,4 @@ class controller : public IObserver
         int32_t negative_duty_cycle;
 };  
 
-
 #endif

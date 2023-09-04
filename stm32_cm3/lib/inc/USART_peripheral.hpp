@@ -34,5 +34,4 @@ class USART_peripheral
 
 };
 
-
 #endif

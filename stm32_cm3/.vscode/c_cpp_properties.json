@@ -8,35 +8,35 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
-                "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3",
-                "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3/include",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                "/home/isaac/.platformio/packages/framework-libopencm3",
+                "/home/isaac/.platformio/packages/framework-libopencm3/include",
                 ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
-                    "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3",
-                    "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3/include",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                    "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                    "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                    "/home/isaac/Documents/University/TCC/repository/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    "/home/isaac/.platformio/packages/framework-libopencm3",
+                    "/home/isaac/.platformio/packages/framework-libopencm3/include",
                     ""
                 ]
             },
             "defines": [
-                "PLATFORMIO=60110",
+                "PLATFORMIO=60111",
                 "STM32F103xB",
                 "STM32F1",
                 "F_CPU=72000000L",
                 ""
             ],
             "cppStandard": "c++11",
-            "compilerPath": "C:/Users/isaacsousa/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/bin/arm-none-eabi-gcc.exe",
+            "compilerPath": "/home/isaac/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/bin/arm-none-eabi-gcc",
             "compilerArgs": [
                 "-mthumb",
                 "-mthumb",

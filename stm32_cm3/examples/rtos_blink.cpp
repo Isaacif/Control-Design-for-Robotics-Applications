@@ -1,6 +1,7 @@
+#include <FreeRTOS.h>
+#include <task.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-#include "controller.hpp"
 
 // LED pin definitions
 #define LED_PORT GPIOC
@@ -10,6 +11,7 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskNa
 {
     // Handle or log the stack overflow as needed (or leave it empty).
 }
+
 
 // FreeRTOS task function
 extern "C" void ledBlinkTask(void *pvParameters) 

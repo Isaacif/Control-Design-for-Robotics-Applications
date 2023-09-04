@@ -7,6 +7,9 @@
  * 
  */
 
+#ifndef algorithms_HPP
+#define algorithms_HPP
+
 #define SYSTEM_PERIOD       0.0001
 #define RAMP_TS_ONE         0.2
 #define RAMP_TS_TWO         0.8 
@@ -22,9 +25,6 @@
 #include "ADC_peripheral.hpp"
 #include "PWM_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
-
-#ifndef algorithms_HPP
-#define algorithms_HPP
 
 class P_Controller
 {
