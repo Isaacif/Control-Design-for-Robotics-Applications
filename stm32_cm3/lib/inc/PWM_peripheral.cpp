@@ -73,8 +73,8 @@ void PWM_peripheral::gpioSetup(tim_oc_id timer_select, uint32_t GPIO_Port_Select
 
 void PWM_peripheral::pwmWrite(float duty_cycle, tim_oc_id timer_select)
 {
-    //uint32_t busy_time = (duty_cycle*COUNT_UP_TO)/100;
-    uint32_t busy_time = duty_cycle;
+    uint32_t busy_time = (duty_cycle*COUNT_UP_TO)/100;
+    //uint32_t busy_time = duty_cycle;
     timer_set_oc_value(timer_register, timer_select, busy_time);
     timer_enable_counter(timer_register);
     timer_enable_oc_output(timer_register, timer_select);

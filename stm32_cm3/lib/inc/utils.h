@@ -3,8 +3,6 @@
 
 #define BUFFER_SIZE     100
 
-#include <FreeRTOS.h>
-#include <task.h>
 #include <stdint.h>
 #include <cmath>
 typedef struct sensors_circular_buffer 

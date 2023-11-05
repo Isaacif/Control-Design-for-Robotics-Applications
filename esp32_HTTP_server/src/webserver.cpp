@@ -26,11 +26,16 @@
 //
 //*****************************************************************************
 
+#define Period 10
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <HardwareSerial.h>
 #include <vector>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 
 //*****************************************************************************
 //
@@ -49,11 +54,126 @@ String Angle = "";                          // Angle value handler
 
 char message_buffer[BUFFER_SIZE];
 uint8_t bufferIndex = 0;
+uint8_t voltage;
+uint8_t applied;
+uint8_t ia;
+
+uint8_t step;
 
 /**
  * @brief requestHandler()
  * Recevies Data from clients and sends it to the stm32.
  */
+
+
+int logic = true;
+TaskHandle_t task1Handle;
+TaskHandle_t task2Handle;
+
+void task1Function(void* parameter) 
+{
+  (void)parameter;  // Unused
+
+  for (;;) {
+    if (SerialPort.available()) 
+    {
+        char received_data = SerialPort.read();
+        if(received_data == '\n')
+        {
+            message_buffer[bufferIndex] = '\0';
+            bufferIndex = 0;
+            Serial.print("STM32: ");
+            Serial.println(message_buffer);
+            Serial.println(voltage);
+        }
+        else
+        {
+            if (bufferIndex < BUFFER_SIZE - 1) 
+            {
+                message_buffer[bufferIndex] = received_data;
+                bufferIndex++;
+            }
+        }
+    }
+  }
+}
+
+// Function to toggle LED2
+void task2Function(void* parameter) {
+  (void)parameter;  // Unused
+
+  for (;;) 
+  {
+        for(int i=0; i < 100; i++)
+            {
+                step = i;
+                if(i < 10)
+                {
+                    voltage = 0;
+                    analogWrite(15, 0);
+                    analogWrite(18, 0);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 20)
+                {
+                    voltage = 12*(2.5*i)/100;
+                    applied = 2.5*i;
+                    analogWrite(15, 2.55*applied);
+                    analogWrite(18, 0);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 40)
+                {   
+                    voltage = 12;
+                    analogWrite(15, 255);
+                    analogWrite(18, 0);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 50)
+                {
+                    ia = i - 40;
+                    voltage = 6 - 12*(2.5*ia)/100;
+                    applied = 50-2.5*ia;
+                    analogWrite(15, 2.55*applied);
+                    analogWrite(18, 0);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 60)
+                {
+                    voltage = 0;
+                    analogWrite(15, 0);
+                    analogWrite(18, 0);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 70)
+                {
+                    ia = i-50;
+                    voltage = -12*(2.5*(i-50))/100;
+                    applied = 2.5*ia;
+                    analogWrite(15, 0);
+                    analogWrite(18, 2.55*applied);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+                else if(i < 90)
+                {
+                    voltage = -12;
+                    analogWrite(15, 0);
+                    analogWrite(18, 255);
+                    vTaskDelay(pdMS_TO_TICKS(Period));   
+                }
+                else if(i < 100)
+                {
+                    ia = i - 90;
+                    voltage = -(6 - 12*(2.5*ia)/100);
+                    applied = 50-2.5*ia;
+                    analogWrite(15, 0);
+                    analogWrite(18, 2.55*applied);
+                    vTaskDelay(pdMS_TO_TICKS(Period));
+                }
+            }	            
+        }
+}
+
 
 void requestHandler()
 {   
@@ -75,7 +195,6 @@ void requestHandler()
       espWebServer.send(400, "text/plain", "Bad Request");      // Gives a failure indication.
       Serial.println("Failed Comunication. ");
     }
-
 }
 
 /**
@@ -87,7 +206,12 @@ void requestHandler()
 
 void setup() 
 {
+    pinMode(15, OUTPUT);
+    pinMode(18, OUTPUT);
+    pinMode(19, OUTPUT);
+    pinMode(35, INPUT_PULLDOWN);
     Serial.begin(115200);
+    /*
     Serial.print("Connecting to ");
     Serial.println(NETWORK_SSID);
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
@@ -103,8 +227,30 @@ void setup()
     espWebServer.on("/", requestHandler);     
     espWebServer.begin();
     Serial.println("HTTP server started");          
+    */
+    digitalWrite(19, HIGH);
+    SerialPort.begin(115200, SERIAL_8N1, RX_pin, TX_pin);    
+    while(true)
+    {
+        int value = digitalRead(35);
+        if(value)
+        {
+            xTaskCreatePinnedToCore(task1Function, "Task1", 1000, NULL, tskIDLE_PRIORITY, &task1Handle, 0);
 
-    SerialPort.begin(115200, SERIAL_8N1, RX_pin, TX_pin);                                                       
+            // Create and start Task 2
+            xTaskCreatePinnedToCore(task2Function, "Task2", 1000, NULL, 1, &task2Handle, 0);
+
+            // Start the FreeRTOS scheduler
+            //vTaskStartScheduler();
+            break;
+        }
+        else
+        {
+            //Serial.println(value);
+            vTaskDelay(pdMS_TO_TICKS(50));
+        }
+    }
+                                                       
 }
 
 /**
@@ -115,27 +261,6 @@ void setup()
 
 void loop() 
 {
-    espWebServer.handleClient();
-    
-    if (SerialPort.available()) 
-    {
-        char received_data = SerialPort.read();
-        if(received_data == '\n')
-        {
-            message_buffer[bufferIndex] = '\0';
-            bufferIndex = 0;
-            Serial.print("STM32: ");
-            Serial.println(message_buffer);
-        }
-        else
-        {
-            if (bufferIndex < BUFFER_SIZE - 1) 
-            {
-                message_buffer[bufferIndex] = received_data;
-                bufferIndex++;
-            }
-        }
-    }
-    delay(10);
+    //espWebServer.handleClient();
 }
 

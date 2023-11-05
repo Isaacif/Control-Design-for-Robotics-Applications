@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "vector": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/esp32_HTTP_server/.pio/libdeps/esp32doit-devkit-v1/Unity"
 }

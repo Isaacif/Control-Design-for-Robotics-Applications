@@ -38,7 +38,8 @@ void controller::pwm_mapping(int32_t pwm_value)
     }
     else if(pwm_value < 0)
     {
-        negative_duty_cycle = CONTROL_ACTION_THRESHOLD + pwm_value;
+        //negative_duty_cycle = CONTROL_ACTION_THRESHOLD + pwm_value;
+        negative_duty_cycle = 100 + pwm_value;
         u_output->pwmWrite(negative_duty_cycle, JOINT_PWM_INPUT[id]);
         gpio_set(GPIO_PORT_INB, GPIO_PIN_INB);
     }
