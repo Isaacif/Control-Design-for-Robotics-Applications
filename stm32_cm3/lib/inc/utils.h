@@ -4,6 +4,7 @@
 #define BUFFER_SIZE     100
 
 #include <stdint.h>
+//#include "FreeRTOS.h"
 #include <cmath>
 typedef struct sensors_circular_buffer 
 {
@@ -21,9 +22,10 @@ void circularBufferPop(sensors_circular_buffer_t *circular_buffer);
 float circularBufferGetRelativeElement(sensors_circular_buffer_t *circular_buffer, int index);
 void circularBufferClean(sensors_circular_buffer_t *circular_buffer);
 
+/*
 void * operator new(size_t size);
 void * operator new[](size_t size);
 void operator delete(void * ptr);
 void operator delete[](void * ptr);
-
+*/
 #endif

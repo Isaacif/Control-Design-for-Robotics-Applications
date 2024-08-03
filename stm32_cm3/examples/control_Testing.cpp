@@ -62,8 +62,8 @@ int16_t i;
 int16_t blink_flag = 0;
 uint32_t now;
 
-float sensor_k;
-float pwm_value_k;
+uint16_t sensor_k;
+uint16_t pwm_value_k;
 
 volatile char web_server_buffer[MAX_RX_BUFFER_SIZE];
 volatile uint16_t rx_buffer_index = 0;
@@ -73,10 +73,10 @@ volatile char receivedChar = '\0';
 static void gpio_setup(void)
 {
     rcc_periph_clock_enable(RCC_GPIOB);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-                  GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-    GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
+    gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, LED_PIN);
+    gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT,
+    GPIO_PUPD_PULLUP, GPIO5);
 }
 
 /**

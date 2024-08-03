@@ -29,6 +29,7 @@ and executed in the robot arm.
 
 """
 Used Librarys
+vs
 """
 from klampt import *
 from PyQt5.QtCore import *
@@ -50,6 +51,10 @@ class robotGUI():
         self.world = WorldModel()
         self.world.readFile(worldFileName)
         self.robot = self.world.robot(0)
+        self.robot.setConfig([0.0, 0.0, 0.0, 0.0])
+        self.robot.setVelocity([0.0, 0.0, 0.0, 0.0])
+        self.robot.setVelocityLimits([10.0, 10.0, 10.0, 10.0])
+        self.robot.setAccelerationLimits([20.0, 20.0, 20.0, 20.0])
         self.q_init = self.robot.getConfig()
         self.desired_angle = 0
         self.desired_joint = 0
@@ -82,6 +87,9 @@ class robotGUI():
         vis.customUI(self.make_gui)
         vis.add("world", self.world)
         vis.show()
+        #self.simulation.setGravity((0, 0, -9.8))
+        self.simulation.setGravity((0, 0, 0))
+        print(self.q_init)
         while vis.shown():
             if self.PendingMoviment:
                 joint_angle = self.simulation.controller(0).getCommandedConfig()
@@ -93,7 +101,6 @@ class robotGUI():
                     self.PendingMoviment = False
                     self.HTTP_send_comands()
                     self.PendingRequest = False
-        
             time.sleep(0.0125)
             
         vis.kill()  

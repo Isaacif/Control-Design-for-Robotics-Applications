@@ -1,52 +1,122 @@
 #include "controller.hpp"
 
-controller::controller(uint8_t joint_id, uint32_t GPORT_INB, uint32_t GPIN_INB, 
-                       ADC_peripheral *sensor, ADPI_Controller *jcontroller, 
-                       PWM_peripheral *output, rcc_periph_clken RCC_GPIOP)
+controller::controller(uint8_t id_1, uint8_t id_2,uint32_t GPORT_INB1s, uint32_t GPIN_INB1s, uint32_t GPORT_INB2s, uint32_t GPIN_INB2s, 
+                   ADC_peripheral *a_sensors, servoIn_Controller *Ji_controllers, 
+                   PWM_peripheral *u_outputs, rcc_periph_clken RCC_GPIOPs)
 {
-    this->id = joint_id, GPIO_PORT_INB = GPORT_INB, GPIO_PIN_INB = GPIN_INB;
-    RCC_GPIO_INB = RCC_GPIOP;
-    a_sensor = sensor;
-    Ji_controller = jcontroller;
-    u_output = output;  
+    this->id1 = id_1, this->id2 = id_2;
+    GPIO_PORT_INB1 = GPORT_INB1s, GPIO_PIN_INB1 = GPIN_INB1s;
+    GPIO_PORT_INB2 = GPORT_INB2s, GPIO_PIN_INB2 = GPIN_INB2s;
+    RCC_GPIO_INB = RCC_GPIOPs;
+    a_sensor = a_sensors;
+    Ji_controller = Ji_controllers;
+    u_output = u_outputs;  
 
-    rcc_periph_clock_enable(RCC_GPIO_INB);
-    gpio_set_mode(GPIO_PORT_INB, GPIO_MODE_OUTPUT_2_MHZ,
-                  GPIO_CNF_OUTPUT_PUSHPULL, GPIO_PIN_INB);
-    gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
+    //rcc_periph_clock_enable(RCC_GPIO_INB);
+    gpio_mode_setup(GPIO_PORT_INB1, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, GPIO_PIN_INB1);
+    gpio_set_output_options(GPIO_PORT_INB1, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO_PIN_INB1);
+    gpio_clear(GPIO_PORT_INB1, GPIO_PIN_INB1);
+
+    gpio_mode_setup(GPIO_PORT_INB2, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, GPIO_PIN_INB2);
+    gpio_set_output_options(GPIO_PORT_INB2, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO_PIN_INB1);
+    gpio_clear(GPIO_PORT_INB2, GPIO_PIN_INB2);
+
 }
 
-void controller::Update(int spoint)
+void controller::controller_initialize(uint8_t id_1, uint8_t id_2, uint32_t GPORT_INB1s, uint32_t GPIN_INB1s, uint32_t GPORT_INB2s, uint32_t GPIN_INB2s, 
+                   ADC_peripheral *a_sensors, servoIn_Controller *Ji_controllers, 
+                   PWM_peripheral *u_outputs, rcc_periph_clken RCC_GPIOPs)
 {
-    this->set_point = spoint;
-    Ji_controller->configureSP(spoint);
+    this->id1 = id_1, this->id2 = id_2;
+    GPIO_PORT_INB1 = GPORT_INB1s, GPIO_PIN_INB1 = GPIN_INB1s;
+    GPIO_PORT_INB2 = GPORT_INB2s, GPIO_PIN_INB2 = GPIN_INB2s;
+    RCC_GPIO_INB = RCC_GPIOPs;
+    a_sensor = a_sensors;
+    Ji_controller = Ji_controllers;
+    u_output = u_outputs;  
+
+    //rcc_periph_clock_enable(RCC_GPIO_INB);
+    gpio_mode_setup(GPIO_PORT_INB1, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, GPIO_PIN_INB1);
+    gpio_set_output_options(GPIO_PORT_INB1, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO_PIN_INB1);
+    gpio_clear(GPIO_PORT_INB1, GPIO_PIN_INB1);
+
+    gpio_mode_setup(GPIO_PORT_INB2, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, GPIO_PIN_INB2);
+    gpio_set_output_options(GPIO_PORT_INB2, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO_PIN_INB1);
+    gpio_clear(GPIO_PORT_INB2, GPIO_PIN_INB2);
+}
+
+void controller::Update(int8_t setpoint1, int8_t setpoint2)
+{
+    this->set_point1 = setpoint1;
+    this->set_point2 = setpoint2;
+    Ji_controller->configureSP(setpoint1, setpoint2);
 }
 
 void controller::loop()
 {
     sensor_k = a_sensor->adc_read(JOINT_ANGLE_OBSERVER[id]);
-    pwm_value_k = round(Ji_controller->computeControlAction(sensor_k, this->time_period));
-    this->pwm_mapping(pwm_value_k);
+    pwm_value_k1 = round(Ji_controller->computeControlAction(sensor_k, 0, this->time_period));
+    pwm_value_k1 = pwm_value_k1*0.0015;
+    if(pwm_value_k1 > 100)
+    {
+        pwm_value_k1 = 25;
+    }
+    this->pwm_mapping(pwm_value_k1, 0);
 }
 
-void controller::pwm_mapping(int32_t pwm_value)
+void controller::loopDMA(int16_t reading1, int16_t reading2)
+{
+    
+    Ji_controller->computeControlAction(reading1, reading2, this->time_period);
+    pwm_value_k1 = Ji_controller->u1_k;
+    pwm_value_k2 = Ji_controller->u2_k;
+
+    this->pwm_mapping(pwm_value_k1, 1);
+    this->pwm_mapping(pwm_value_k2, 2);
+}
+
+void controller::pwm_mapping(int32_t pwm_value, uint8_t joint_id)
 {   
+    int this_instance_id;
+    uint32_t GPIO_PORT, GPIO_PIN;
+    if(joint_id == 1)
+    {   
+        this_instance_id = 0;
+        GPIO_PORT = GPIO_PORT_INB1;
+        GPIO_PIN = GPIO_PIN_INB1;
+    }
+    
+    if(joint_id == 2)
+    {
+        this_instance_id = 1;
+        GPIO_PORT = GPIO_PORT_INB2;
+        GPIO_PIN = GPIO_PIN_INB2;
+    }
+
     if(pwm_value > 0)
     {
-        u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[id]);
-        gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
+        u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[this_instance_id]);
+        gpio_clear(GPIO_PORT, GPIO_PIN);
     }
     else if(pwm_value < 0)
     {
         //negative_duty_cycle = CONTROL_ACTION_THRESHOLD + pwm_value;
         negative_duty_cycle = 100 + pwm_value;
-        u_output->pwmWrite(negative_duty_cycle, JOINT_PWM_INPUT[id]);
-        gpio_set(GPIO_PORT_INB, GPIO_PIN_INB);
+        u_output->pwmWrite(negative_duty_cycle, JOINT_PWM_INPUT[this_instance_id]);
+        gpio_set(GPIO_PORT, GPIO_PIN);
     }
     else 
     {
-        u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[id]);
-        gpio_clear(GPIO_PORT_INB, GPIO_PIN_INB);
+        u_output->pwmWrite(pwm_value, JOINT_PWM_INPUT[this_instance_id]);
+        gpio_clear(GPIO_PORT, GPIO_PIN);
     }
 }
 

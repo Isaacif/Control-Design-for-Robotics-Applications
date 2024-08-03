@@ -8,39 +8,48 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
-                "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3",
-                "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3/include",
-                "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                "C:/Users/isaac/.platformio/packages/framework-libopencm3",
+                "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
+                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
                 ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
-                    "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3",
-                    "C:/Users/isaacsousa/.platformio/packages/framework-libopencm3/include",
-                    "C:/Users/isaacsousa/Documents/University/Tcc/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                    "C:/Users/isaac/.platformio/packages/framework-libopencm3",
+                    "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
+                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
                     ""
                 ]
             },
             "defines": [
-                "PLATFORMIO=60111",
-                "STM32F103xB",
-                "STM32F1",
-                "F_CPU=72000000L",
+                "PLATFORMIO=60115",
+                "STM32F4xx",
+                "STM32F411xE",
+                "STM32F4",
+                "F_CPU=100000000L",
                 ""
             ],
             "cppStandard": "c++11",
-            "compilerPath": "C:/Users/isaacsousa/.platformio/packages/toolchain-gccarmnoneeabi@1.70201.0/bin/arm-none-eabi-gcc.exe",
+            "compilerPath": "C:/Users/isaac/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
             "compilerArgs": [
                 "-mthumb",
+                "-mfpu=fpv4-sp-d16",
+                "-mfloat-abi=hard",
                 "-mthumb",
-                "-mcpu=cortex-m3",
+                "-mcpu=cortex-m4",
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16",
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16",
                 ""
             ]
         }

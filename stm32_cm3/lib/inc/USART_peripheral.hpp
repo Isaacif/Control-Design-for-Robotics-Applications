@@ -9,6 +9,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <string.h>
 #include <cstdio>
+
 class USART_peripheral
 {
     public:
@@ -21,11 +22,16 @@ class USART_peripheral
         uint8_t usart_pin_tx;
         uint8_t usart_pin_rx;
 
+        USART_peripheral(){}
+
         USART_peripheral(uint16_t USART_TX, uint16_t USART_RX, uint32_t GPORT_SELECT, 
                          rcc_periph_clken RCC_USART, uint32_t USART_REG, 
                          rcc_periph_clken RCC_GPORT_SELECT, uint32_t baudrate);
         
-        
+        void USART_initialization(uint16_t USART_TX, uint16_t USART_RX, uint32_t GPORT_SELECT, 
+                         rcc_periph_clken RCC_USART, uint32_t USART_REG, 
+                         rcc_periph_clken RCC_GPORT_SELECT, uint32_t baudrate);
+            
         void usartSend_char(const char *characters);
         void usartSend_integer(int value); 
 

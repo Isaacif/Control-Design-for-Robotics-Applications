@@ -15,11 +15,12 @@
 //*****************************************************************************
 
 
-#define SYSTEM_COUNT_1S         10000       // One second.
-#define SYSTEM_COUNT_1mS        10          // One milisecond.
-#define SYSTEM_COUNT_100uS      1           // a hundred microseconds (max timer resolution)
+#define SYSTEM_COUNT_1S         1000000       // One second.
+#define SYSTEM_COUNT_1mS        1000          // One milisecond.
+#define SYSTEM_COUNT_1uS        1           // a hundred microseconds (max timer resolution)
 
-#define SYSTEM_TICK_MS(msec)      SYSTEM_COUNT_1mS*msec  // Convert value to miliseconds.
+#define SYSTEM_TICK_US(usec)        SYSTEM_COUNT_1uS*usec
+#define SYSTEM_TICK_MS(msec)        SYSTEM_COUNT_1mS*msec  // Convert value to miliseconds.
 #define SYSTEM_TICK_SEC(sec)        SYSTEM_COUNT_1S*sec  // Convert value to seconds.
 
 //*****************************************************************************
@@ -44,9 +45,12 @@ static volatile uint32_t g_counter_millis = 0;      // Global referente timer co
 class SYS_TIMER_peripheral
 {
     public:      
-        uint16_t system_tick_frequency;
+        uint32_t system_tick_frequency;
 
-        SYS_TIMER_peripheral(uint16_t system_frequency);
+        SYS_TIMER_peripheral(uint32_t system_frequency);
+        SYS_TIMER_peripheral(){}
+
+        void SYS_TIMER_initialize(uint32_t system_frequency);
         
 };
 

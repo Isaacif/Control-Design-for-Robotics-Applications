@@ -24,8 +24,8 @@ int16_t i;
 static void gpio_setup(void)
 {
     rcc_periph_clock_enable(RCC_GPIOB);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-                  GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
+    gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT,
+                  GPIO_PUPD_PULLUP, LED_PIN);
 }
 
 void sys_tick_handler(void)

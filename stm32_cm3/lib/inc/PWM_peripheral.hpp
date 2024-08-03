@@ -43,17 +43,20 @@ class PWM_peripheral
         uint32_t timer_register;
         uint32_t timer_counter_register;
 
+        PWM_peripheral(){}
         PWM_peripheral(uint32_t T_REG, uint32_t TC_REG, rcc_periph_clken RCC_TSelect);
-        
+
+
+        void PWM_initialization(uint32_t T_REG, uint32_t TC_REG, rcc_periph_clken RCC_TSelect);
         void gpioSetup(tim_oc_id timer_select, uint32_t GPIO_Port_Select, 
                        uint32_t GPIO_Pin_Select, rcc_periph_clken RCC_GPort_Select);
 
-        void pwmWrite(float duty_cycle, tim_oc_id timer_select);
+        void pwmWrite(uint16_t duty_cycle, tim_oc_id timer_select);
         void pwmStop();
         
     
     private:
-       const uint32_t PRESCALER = 72; 
+       const uint32_t PRESCALER = 83; 
        const uint32_t COUNT_UP_TO = 1000;
 
        void pwmTimer_reset();

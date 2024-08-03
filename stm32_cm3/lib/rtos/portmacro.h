@@ -46,8 +46,8 @@
 
 /* Type definitions. */
     #define portCHAR          char
-    #define portFLOAT         float
-    #define portDOUBLE        double
+    #define portuint16_t         uint16_t
+    #define portuint16_t        uint16_t
     #define portLONG          long
     #define portSHORT         short
     #define portSTACK_TYPE    uint32_t

@@ -1,142 +1,192 @@
-/**
- * @file main.cpp
- * @author Isaac Lima (isaac.lima.sousa61@aluno.ifce.edu.br)
- * @brief Source file for the stm32 firmware
- * main project file: 
- * Implements all the setup communication with the HTTP server.
- * All the drivers and algorithms for the necessary interface.
- * @version 0.1
- * @date 2023-07-02
- */
-
-
-//*****************************************************************************
-// Macros setup for main function
-//*****************************************************************************
-
-#define StateGain 0.2
-#define SetPoint 430
-
-#define LED_PIN GPIO7
-#define LED_PORT GPIOB
-#define USART_PORT USART1
-
-#define system_frequency_10Khz    1e4
-
-//*****************************************************************************
-// importing all the implemented drivers classes 
-// as well as other userful modules
-//*****************************************************************************
-
+#define StateGain   0.2
+#define SetPoint    430
+#define dataSize    10000
 
 #include "PWM_peripheral.hpp"
 #include "ADC_peripheral.hpp"
 #include "SYS_TIMER_peripheral.hpp"
 #include "USART_peripheral.hpp"
+#include "DMA_peripheral.hpp"
 #include "algorithms.hpp"
-
-#include <string.h>
+#include "controller.hpp"
 
 /* Timer 4 and Timer 3 are reserved for PWM applications
    Timer 2 and other timers can be used for general tasks
    Sys_Tick timer is being used for general counter control
 */
 
-const char *message = "alive";
+#define LED_PIN GPIO13
+#define LED_PORT GPIOC
+#define samplenumb  500
 
+#define system_frequency_1Mhz    1e6
 
+SYS_TIMER_peripheral system_counter;
+ADC_peripheral  adc_port_a;
+PWM_peripheral  pwm_timer_4;
+USART_peripheral serial_interface;
+DMA_peripheral dma2_interface;
+servoIn_Controller servo_system;
+controller joint_controller;
+ISubject system_manager;
 
-//*****************************************************************************
-// Create all the drivers classes
-//*****************************************************************************
+int16_t input_function_stage = 0;
+int16_t joint_one = 0;
+int16_t joint_two = 0;
+int16_t joint_one_h = 0;
+int16_t joint_two_h = 0;
+int16_t joint_one_s = 0;
+int16_t joint_two_s = 0;
 
-ADC_peripheral  adc_port_a(ADC1, RCC_ADC1, RCC_GPIOA, GPIOA);
-PWM_peripheral  pwm_timer_4(TIM4, TIM4_CNT, RCC_TIM4);
-SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
-USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
-                                  RCC_USART1, USART1, RCC_GPIOA, 115200);  
-
-ADPI_Controller motor_controller(1.25, 1, 3200);
-
-int16_t i;
-int16_t blink_flag = 0;
-uint32_t now;
-
-float sensor_k;
-float pwm_value_k;
-uint32_t log_time = 0;
-
-volatile char web_server_buffer[MAX_RX_BUFFER_SIZE];
-volatile uint16_t rx_buffer_index = 0;
-volatile uint8_t rx_data_ready = 0; 
-volatile char receivedChar = '\0';
-
-static void gpio_setup(void)
-{
-    rcc_periph_clock_enable(RCC_GPIOB);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-                  GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
-    gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-    GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
-}
-
-/**
- * @brief usart1_isr
- * usart message interrupt handler
- */
-
-void usart1_isr(void) 
-{
-    if (usart_get_flag(USART1, USART_SR_RXNE)) 
-    {
-        receivedChar = usart_recv(USART1);
-        usart_send_blocking(USART1, receivedChar);
-        gpio_toggle(LED_PORT, LED_PIN);
-    }
-}
-
-/**
- * @brief sys_tick_handler
- * system counter interrupt handler
- */
-
+uint16_t pwm_value1;
+uint16_t pwm_value2;
+int8_t voltage1;
+int8_t voltage2;
+uint16_t reading;
+int16_t on = 0;
+uint32_t samplesnumb = 0;
+uint32_t time_reference1 = 0;
+uint32_t time_reference2 = 0;
+uint8_t GLOBAL_LINK_SETPOINT = 0;
+int8_t ended = 0;
+int8_t side = 1;
+int8_t stop = 0;
+int8_t arr_setpoint1[6] = {-80, 20, 0, 80, -20, 0};
+int8_t arr_setpoint2[6] = {-80, 20, 0, 80, -20, 0};
 void sys_tick_handler(void)
 {
     g_counter_millis++;
 }
 
-void generateOutput(uint16_t timePeriod, float voltage)
+void side_one()
 {
-    for(i = 0; i < 20; i++)
+    voltage1 = 5;
+    pwm_value1 = 41;
+    voltage2 = -6;
+    pwm_value2 = 100 - 50;
+    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
+    gpio_clear(GPIOB, GPIO8);
+    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
+    gpio_set(GPIOB, GPIO9);
+}
+
+void side_two()
+{
+    voltage1 = -5;
+    pwm_value1 = 100 - 41;
+    voltage2 = 6;
+    pwm_value2 = 50;
+    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
+    gpio_set(GPIOB, GPIO8);
+    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
+    gpio_clear(GPIOB, GPIO9);
+}
+
+void joint_read() 
+{
+    joint_one_h = 0;
+    joint_two_h = 0;
+    joint_one_s = 0;
+    joint_two_s = 0;
+
+    for(uint8_t k = 0; k < 10; k++)
     {
-        pwm_timer_4.pwmWrite(voltage, TIM_OC1);
-    }
+        joint_one_h=dma2_interface.memory_buffer[0];
+        joint_two_h=dma2_interface.memory_buffer[1];   
+        joint_two_h-=1580;
+        joint_one_h-=250;
+        if(joint_one_h > 2180)
+        {
+            joint_one_h = -0.0825*(joint_one_s - 2430);
+        }
+        if(joint_one_h < 0)
+        {
+            joint_one_h = 0;
+        }
+        if(joint_two_h < 0)
+        {
+            joint_two_h = 0;
+        }
+        joint_one_s+=joint_one_h;        
+        joint_two_s+=joint_two_h;
+    }   
+
+    joint_one = joint_one_s*0.009 - 90;
+    joint_two = joint_two_s*0.00825 - 90;
+
 }
 
 int main(void)
 {
-    gpio_setup();
-    pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
-    gpio_clear(GPIOB, GPIO7);
-    gpio_set(GPIOB, GPIO5);
+    rcc_clock_setup_pll(&rcc_hse_25mhz_3v3[RCC_CLOCK_3V3_84MHZ]);
+    system_counter.SYS_TIMER_initialize(system_frequency_1Mhz);
+    dma2_interface.DMA_initialize(DMA2, DMA_STREAM0, ADC1_DR, RCC_DMA2);
+
+    adc_port_a.ADC_initialization(ADC1, RCC_ADC1, RCC_GPIOA, GPIOA, 1);
     adc_port_a.gpioSetup(GPIO1);
-    uint32_t time = 0;
+    adc_port_a.gpioSetup(GPIO0);
+
+    pwm_timer_4.PWM_initialization(TIM4, TIM4_CNT, RCC_TIM4);
+    rcc_periph_clock_enable(RCC_GPIOB);
+    pwm_timer_4.gpioSetup(TIM_OC1, GPIOB, GPIO6, RCC_GPIOB);
+    pwm_timer_4.gpioSetup(TIM_OC2, GPIOB, GPIO7, RCC_GPIOB);
+    gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
+    gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
+    gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO8);
+    serial_interface.USART_initialization(GPIO2, GPIO3, GPIOA, 
+                                  RCC_USART2, USART2, RCC_GPIOA, 115200); 
+
+    gpio_clear(GPIOB, GPIO8);
+    gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
+                    GPIO_OSPEED_25MHZ,  GPIO9);
+    gpio_clear(GPIOB, GPIO9);
+    gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO10);
+    servo_system.servoIn_initialize(0, 50);
+    joint_controller.controller_initialize(0, 1, GPIOB, GPIO8, GPIOB, GPIO9, &adc_port_a,
+                                           &servo_system, &pwm_timer_4, RCC_GPIOB);        
+    
+    while (true)
+    {
+        reading = gpio_get(GPIOA, GPIO10);
+        if(reading == 0)
+        {
+            break;
+        }
+    }
+
     while(true)
     {
-        if(g_counter_millis - log_time > SYSTEM_TICK_SEC(5))
+          
+        if(g_counter_millis - time_reference1 > SYSTEM_TICK_MS(5))
         {
-            sensor_k = 0;
-            for(i = 0; i < 3; i++)
+            //joint_read();
+            joint_controller.loopDMA(joint_one, joint_two);
+            time_reference1 = g_counter_millis;
+        }
+
+        if(g_counter_millis - time_reference2 > SYSTEM_TICK_MS(275))
+        {
+            joint_one=dma2_interface.memory_buffer[0];
+            joint_two=dma2_interface.memory_buffer[1];   
+            serial_interface.usartSend_char("1: ");
+            serial_interface.usartSend_integer(joint_one);
+            serial_interface.usartSend_char("2: ");
+            serial_interface.usartSend_integer(joint_two);
+            time_reference2 = g_counter_millis;
+        }
+
+        
+        if(g_counter_millis > SYSTEM_TICK_SEC(4))
+        {   
+            joint_controller.Update(arr_setpoint1[GLOBAL_LINK_SETPOINT], arr_setpoint2[GLOBAL_LINK_SETPOINT]);
+            GLOBAL_LINK_SETPOINT++;
+            if(GLOBAL_LINK_SETPOINT > 5)
             {
-                sensor_k += adc_port_a.adc_read(ADC_CHANNEL1);
+                GLOBAL_LINK_SETPOINT = 0;
             }
-            sensor_k = sensor_k/3;
-            serial_interface.usartSend_char("Angle: ");
-            serial_interface.usartSend_integer(sensor_k);
-            serial_interface.usartSend_char("Time: ");
-            serial_interface.usartSend_integer(time);
-            time += 5;
-            log_time = g_counter_millis;
+            time_reference1 = 0; time_reference2 = 0;
+            g_counter_millis = 0;
         }
     }
 }

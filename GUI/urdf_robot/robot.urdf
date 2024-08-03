@@ -1,0 +1,71 @@
+<robot name="onshape">
+<link name="body">
+<visual>
+<origin xyz="1.0408340855860842566e-17 1.3877787807814456755e-17 0.034625000000000155653" rpy="-5.6465249143045090645e-16 1.387778780781445429e-16 -0.19014652771965792621" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+<material name="body_material">
+<color rgba="1 0 0 1.0"/>
+</material>
+</visual>
+<collision>
+<origin xyz="1.0408340855860842566e-17 1.3877787807814456755e-17 0.034625000000000155653" rpy="-5.6465249143045090645e-16 1.387778780781445429e-16 -0.19014652771965792621" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+</collision>
+<visual>
+<origin xyz="0.00024630588685596588316 -0.001365765040240121686 0.18211452443454681505" rpy="1.8298003054497500308 1.9428902930940204945e-16 -0.19014652771965823153" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+<material name="body_material">
+<color rgba="1 0 0 1.0"/>
+</material>
+</visual>
+<collision>
+<origin xyz="0.00024630588685596588316 -0.001365765040240121686 0.18211452443454681505" rpy="1.8298003054497500308 1.9428902930940204945e-16 -0.19014652771965823153" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+</collision>
+<visual>
+<origin xyz="0 0 0.034625000000000002998" rpy="-3.141592653589793116 -3.0531133177191696393e-16 8.5001450322863251803e-17" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+<material name="body_material">
+<color rgba="1 0 0 1.0"/>
+</material>
+</visual>
+<collision>
+<origin xyz="0 0 0.034625000000000002998" rpy="-3.141592653589793116 -3.0531133177191696393e-16 8.5001450322863251803e-17" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+</collision>
+<visual>
+<origin xyz="0.0002454941378780585437 -4.7250695947423371202e-05 0.10212500000000014622" rpy="1.5546131610964566416 -8.604228440844972063e-16 2.9514461258701367719" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+<material name="body_material">
+<color rgba="1 0 0 1.0"/>
+</material>
+</visual>
+<collision>
+<origin xyz="0.0002454941378780585437 -4.7250695947423371202e-05 0.10212500000000014622" rpy="1.5546131610964566416 -8.604228440844972063e-16 2.9514461258701367719" />
+<geometry>
+<mesh filename="package:///body.stl"/>
+</geometry>
+</collision>
+<inertial>
+<origin xyz="-0.0002239604272954608588 -0.00096752903652323209681 0.056779151688873895354" rpy="0 0 0"/>
+<mass value="0.49907570723317185024" />
+<inertia ixx="0.0031930852075629520895" ixy="1.1970892402855333225e-05"  ixz="1.3163303671267100097e-05" iyy="0.0032373335408440850197" iyz="7.6716802596244336085e-05" izz="0.00057418675164548258448" />
+</inertial>
+</link>
+
+
+</robot>

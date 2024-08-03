@@ -818,8 +818,8 @@
     #define configUSE_QUEUE_SETS    0
 #endif
 
-#ifndef portTASK_USES_FLOATING_POINT
-    #define portTASK_USES_FLOATING_POINT()
+#ifndef portTASK_USES_uint16_tING_POINT
+    #define portTASK_USES_uint16_tING_POINT()
 #endif
 
 #ifndef portALLOCATE_SECURE_CONTEXT
@@ -1034,9 +1034,9 @@
     #error The alternative API was deprecated some time ago, and was removed in FreeRTOS V9.0 0
 #endif
 
-/* Set configUSE_TASK_FPU_SUPPORT to 0 to omit floating point support even
- * if floating point hardware is otherwise supported by the FreeRTOS port in use.
- * This constant is not supported by all FreeRTOS ports that include floating
+/* Set configUSE_TASK_FPU_SUPPORT to 0 to omit uint16_ting point support even
+ * if uint16_ting point hardware is otherwise supported by the FreeRTOS port in use.
+ * This constant is not supported by all FreeRTOS ports that include uint16_ting
  * point support. */
 #ifndef configUSE_TASK_FPU_SUPPORT
     #define configUSE_TASK_FPU_SUPPORT    1

@@ -37,9 +37,12 @@ class ADC_peripheral
         uint32_t GPIO_PORT_SELECT;
         uint32_t ADC_PERIPHERAL_SELECT;
 
+        ADC_peripheral(){}
         ADC_peripheral(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSelect,
-                       rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect);
+                       rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect, uint8_t continuous);
 
+        void ADC_initialization(uint32_t ADC_PSelect, rcc_periph_clken RCC_ADSelect,
+                       rcc_periph_clken RCC_GPSelect, uint32_t GPIO_PortSelect, uint8_t continuous);
         void gpioSetup(uint16_t GPIO_PIN_SELECT);
         uint16_t adc_read(uint8_t ADC_CHANNEL_SELECT);
 
