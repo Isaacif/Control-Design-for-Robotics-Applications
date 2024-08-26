@@ -51,8 +51,13 @@ uint8_t GLOBAL_LINK_SETPOINT = 0;
 int8_t ended = 0;
 int8_t side = 1;
 int8_t stop = 0;
-int8_t arr_setpoint1[4] = {-80, 0, 80, 0};
-int8_t arr_setpoint2[4] = {-80, 0, 80, 0};
+int8_t arr_setpoint1[6] = {-80, 20, 0, 80, -20, 0};
+int8_t arr_setpoint2[6] = {-80, 20, 0, 80, -20, 0};
+
+std::string esp32_data = "";
+static uint8_t received_data = 'A';
+int8_t setpoint_esp;
+char receivedChar = '\0';
 void sys_tick_handler(void)
 {
     g_counter_millis++;
@@ -82,7 +87,7 @@ void side_two()
     gpio_clear(GPIOB, GPIO9);
 }
 
-void 'joint_read() 
+void joint_read() 
 {
     joint_one_h = 0;
     joint_two_h = 0;
@@ -94,7 +99,6 @@ void 'joint_read()
         joint_one_h=dma2_interface.memory_buffer[0];
         joint_two_h=dma2_interface.memory_buffer[1];   
         joint_two_h-=1580;
-        joint_one_h-=250;
         if(joint_one_h > 2180)
         {
             joint_one_h = -0.0825*(joint_one_s - 2430);
@@ -111,13 +115,39 @@ void 'joint_read()
         joint_two_s+=joint_two_h;
     }   
 
-    joint_one = joint_one_s*0.009 - 90;
+    joint_one = dma2_interface.memory_buffer[0];
     joint_two = joint_two_s*0.00825 - 90;
 
 }
 
+void usart1_isr(void) 
+{
+    if (usart_get_flag(USART1, USART_SR_RXNE)) 
+    {
+        while(true)
+        {
+            received_data = usart_recv_blocking(USART1);
+            if(received_data == 10)
+            {
+                break;
+            }
+            else if(received_data != 13)
+            {
+                esp32_data += received_data;
+            }
+            else 
+            {
+                setpoint_esp = std::stoi(esp32_data);
+                esp32_data = "";
+            }
+        }
+        usart_send_blocking(USART1, setpoint_esp);
+    }
+}
+
 int main(void)
 {
+    gpio_mode_setup(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO13);
     rcc_clock_setup_pll(&rcc_hse_25mhz_3v3[RCC_CLOCK_3V3_84MHZ]);
     system_counter.SYS_TIMER_initialize(system_frequency_1Mhz);
     dma2_interface.DMA_initialize(DMA2, DMA_STREAM0, ADC1_DR, RCC_DMA2);
@@ -134,18 +164,21 @@ int main(void)
     gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
     gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
                     GPIO_OSPEED_25MHZ,  GPIO8);
-    serial_interface.USART_initialization(GPIO2, GPIO3, GPIOA, 
-                                  RCC_USART2, USART2, RCC_GPIOA, 115200); 
-
+   
+    serial_interface.USART_initialization(GPIO9, GPIO10, GPIOA, 
+                                  RCC_USART1, USART1, RCC_GPIOA, 115200); 
+ 
     gpio_clear(GPIOB, GPIO8);
     gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
                     GPIO_OSPEED_25MHZ,  GPIO9);
     gpio_clear(GPIOB, GPIO9);
     gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO10);
-    servo_system.servoIn_initialize(0, 0);
+
+    servo_system.servoIn_initialize(0, 20);
     joint_controller.controller_initialize(0, 1, GPIOB, GPIO8, GPIOB, GPIO9, &adc_port_a,
                                            &servo_system, &pwm_timer_4, RCC_GPIOB);        
     
+
     while (true)
     {
         reading = gpio_get(GPIOA, GPIO10);
@@ -155,39 +188,14 @@ int main(void)
         }
     }
 
+
     while(true)
     {
-          
         if(g_counter_millis - time_reference1 > SYSTEM_TICK_MS(5))
         {
             joint_read();
             joint_controller.loopDMA(joint_one, joint_two);
             time_reference1 = g_counter_millis;
-        }
-
-        if(g_counter_millis - time_reference2 > SYSTEM_TICK_MS(275))
-        {
-            serial_interface.usartSend_char("1: ");
-            serial_interface.usartSend_integer(joint_one);
-            serial_interface.usartSend_integer(servo_system.u1_k);
-            serial_interface.usartSend_integer(servo_system.x2_l1_est_k);
-            serial_interface.usartSend_integer(servo_system.e1_k);
-            serial_interface.usartSend_char("2: ");
-            serial_interface.usartSend_integer(joint_two);
-            serial_interface.usartSend_integer(servo_system.u2_k);
-            serial_interface.usartSend_integer(servo_system.e2_k);
-            time_reference2 = g_counter_millis;
-        }
-        if(false)
-        {   
-            joint_controller.Update(arr_setpoint1[GLOBAL_LINK_SETPOINT], arr_setpoint2[GLOBAL_LINK_SETPOINT]);
-            GLOBAL_LINK_SETPOINT++;
-            if(GLOBAL_LINK_SETPOINT > 4)
-            {
-                GLOBAL_LINK_SETPOINT = 0;
-            }
-            time_reference1 = 0; time_reference2 = 0;
-            g_counter_millis = 0;
         }
     }
 }

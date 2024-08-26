@@ -52,7 +52,7 @@ const char *message = "alive";
 ADC_peripheral  adc_port_a(ADC1, RCC_ADC1, RCC_GPIOA, GPIOA);
 PWM_peripheral  pwm_timer_4(TIM4, TIM4_CNT, RCC_TIM4);
 SYS_TIMER_peripheral system_counter(system_frequency_10Khz);
-USART_peripheral serial_interface(GPIO_USART1_TX, GPIO_USART1_RX, GPIOA, 
+USART_peripheral serial_interface(, GPIO_USART1_RX, GPIOA, 
                                   RCC_USART1, USART1, RCC_GPIOA, 115200);  
 
 ADPI_Controller motor_controller_one(1.35, 0.05, 3200);

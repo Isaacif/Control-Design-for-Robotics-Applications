@@ -67,7 +67,7 @@ class controller : public IObserver
         void attach_parameters(loop_parameters_t c_parameters);
         virtual void loop();
         virtual void loopDMA(int16_t reading1, int16_t reading2);
-        virtual void Update(int8_t setpoint1, int8_t setpoint2) override;
+        virtual void Update(int8_t setpoint, int8_t ID) override;
         void pwm_mapping(int32_t pwm_value, uint8_t joint_id);
 
     private:

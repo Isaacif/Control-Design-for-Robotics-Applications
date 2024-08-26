@@ -53,33 +53,18 @@ int8_t side = 1;
 int8_t stop = 0;
 int8_t arr_setpoint1[6] = {-80, 20, 0, 80, -20, 0};
 int8_t arr_setpoint2[6] = {-80, 20, 0, 80, -20, 0};
+uint16_t joint_flag = 0;
+uint16_t pending_mess = 0;
+int16_t setpoint_one = 0;
+int16_t setpoint_two = 0;
+
+std::string esp32_data = "";
+static uint8_t received_data = 'A';
+int16_t setpoint_esp;
+char receivedChar = '\0';
 void sys_tick_handler(void)
 {
     g_counter_millis++;
-}
-
-void side_one()
-{
-    voltage1 = 5;
-    pwm_value1 = 41;
-    voltage2 = -6;
-    pwm_value2 = 100 - 50;
-    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
-    gpio_clear(GPIOB, GPIO8);
-    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
-    gpio_set(GPIOB, GPIO9);
-}
-
-void side_two()
-{
-    voltage1 = -5;
-    pwm_value1 = 100 - 41;
-    voltage2 = 6;
-    pwm_value2 = 50;
-    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
-    gpio_set(GPIOB, GPIO8);
-    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
-    gpio_clear(GPIOB, GPIO9);
 }
 
 void joint_read() 
@@ -93,12 +78,8 @@ void joint_read()
     {
         joint_one_h=dma2_interface.memory_buffer[0];
         joint_two_h=dma2_interface.memory_buffer[1];   
-        joint_two_h-=1580;
-        joint_one_h-=250;
-        if(joint_one_h > 2180)
-        {
-            joint_one_h = -0.0825*(joint_one_s - 2430);
-        }
+        joint_one_h-=1050;
+        joint_two_h-=1110;
         if(joint_one_h < 0)
         {
             joint_one_h = 0;
@@ -111,13 +92,56 @@ void joint_read()
         joint_two_s+=joint_two_h;
     }   
 
-    joint_one = joint_one_s*0.009 - 90;
-    joint_two = joint_two_s*0.00825 - 90;
-
+    joint_one = joint_one_s*0.017 - 90;
+    joint_two = joint_two_s*0.0087 - 90;
 }
+
+void usart1_isr(void) 
+{
+    if(usart_get_flag(USART1, USART_SR_RXNE)) 
+    {
+        while(true)
+        {
+            received_data = usart_recv_blocking(USART1);
+            pending_mess = 1;
+            if(received_data == 10)
+            {
+                break;
+            }
+            else if(received_data != 13)
+            {
+                esp32_data += received_data;
+            }
+            else 
+            {
+                setpoint_esp = std::stoi(esp32_data);
+                esp32_data = "";
+            }
+            if(g_counter_millis - time_reference2 > SYSTEM_TICK_MS(5))
+            {
+                time_reference2 = g_counter_millis;
+                break;
+            }
+        }
+        if(setpoint_esp >= 1000)
+        {
+            if(setpoint_esp == 1000)
+            {
+                joint_flag = 1;
+            }
+            if(setpoint_esp == 1001)
+            {
+                joint_flag = 2;
+            }
+        }
+        usart_send_blocking(USART1, setpoint_esp);
+    }
+}
+
 
 int main(void)
 {
+    gpio_mode_setup(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO13);
     rcc_clock_setup_pll(&rcc_hse_25mhz_3v3[RCC_CLOCK_3V3_84MHZ]);
     system_counter.SYS_TIMER_initialize(system_frequency_1Mhz);
     dma2_interface.DMA_initialize(DMA2, DMA_STREAM0, ADC1_DR, RCC_DMA2);
@@ -134,59 +158,37 @@ int main(void)
     gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
     gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
                     GPIO_OSPEED_25MHZ,  GPIO8);
-    serial_interface.USART_initialization(GPIO2, GPIO3, GPIOA, 
-                                  RCC_USART2, USART2, RCC_GPIOA, 115200); 
-
+   
+    serial_interface.USART_initialization(GPIO9, GPIO10, GPIOA, 
+                                  RCC_USART1, USART1, RCC_GPIOA, 115200); 
+ 
     gpio_clear(GPIOB, GPIO8);
     gpio_set_output_options(GPIOB, GPIO_OTYPE_PP,
                     GPIO_OSPEED_25MHZ,  GPIO9);
     gpio_clear(GPIOB, GPIO9);
-    gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO10);
-    servo_system.servoIn_initialize(0, 50);
+
+    servo_system.servoIn_initialize(10, 10);
     joint_controller.controller_initialize(0, 1, GPIOB, GPIO8, GPIOB, GPIO9, &adc_port_a,
                                            &servo_system, &pwm_timer_4, RCC_GPIOB);        
     
-    while (true)
-    {
-        reading = gpio_get(GPIOA, GPIO10);
-        if(reading == 0)
-        {
-            break;
-        }
-    }
 
     while(true)
     {
-          
         if(g_counter_millis - time_reference1 > SYSTEM_TICK_MS(5))
         {
-            //joint_read();
+            joint_read();
             joint_controller.loopDMA(joint_one, joint_two);
             time_reference1 = g_counter_millis;
         }
-
-        if(g_counter_millis - time_reference2 > SYSTEM_TICK_MS(275))
+        if(pending_mess == 1)
         {
-            joint_one=dma2_interface.memory_buffer[0];
-            joint_two=dma2_interface.memory_buffer[1];   
-            serial_interface.usartSend_char("1: ");
-            serial_interface.usartSend_integer(joint_one);
-            serial_interface.usartSend_char("2: ");
-            serial_interface.usartSend_integer(joint_two);
-            time_reference2 = g_counter_millis;
-        }
-
-        
-        if(g_counter_millis > SYSTEM_TICK_SEC(4))
-        {   
-            joint_controller.Update(arr_setpoint1[GLOBAL_LINK_SETPOINT], arr_setpoint2[GLOBAL_LINK_SETPOINT]);
-            GLOBAL_LINK_SETPOINT++;
-            if(GLOBAL_LINK_SETPOINT > 5)
+            if((joint_flag == 1 || joint_flag == 2) && setpoint_esp < 1000)
             {
-                GLOBAL_LINK_SETPOINT = 0;
+
+                joint_controller.Update(setpoint_esp, joint_flag);
+                joint_flag = 0;
+                pending_mess = 0;
             }
-            time_reference1 = 0; time_reference2 = 0;
-            g_counter_millis = 0;
         }
     }
 }

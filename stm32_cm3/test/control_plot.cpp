@@ -1,6 +1,6 @@
 #define StateGain   0.2
 #define SetPoint    430
-#define dataSize    10000
+#define dataSize    400
 
 #include "PWM_peripheral.hpp"
 #include "ADC_peripheral.hpp"
@@ -35,7 +35,7 @@ int16_t joint_one = 0;
 int16_t joint_two = 0;
 int16_t joint_one_h = 0;
 int16_t joint_two_h = 0;
-int16_t joint_one_s = 0;
+int32_t joint_one_s = 0;
 int16_t joint_two_s = 0;
 
 uint16_t pwm_value1;
@@ -51,37 +51,13 @@ uint8_t GLOBAL_LINK_SETPOINT = 0;
 int8_t ended = 0;
 int8_t side = 1;
 int8_t stop = 0;
-int8_t arr_setpoint1[6] = {-80, 20, 0, 80, -20, 0};
-int8_t arr_setpoint2[6] = {-80, 20, 0, 80, -20, 0};
+
+int16_t joint_one_data[dataSize];
+int16_t joint_two_data[dataSize];
 void sys_tick_handler(void)
 {
     g_counter_millis++;
 }
-
-void side_one()
-{
-    voltage1 = 5;
-    pwm_value1 = 41;
-    voltage2 = -6;
-    pwm_value2 = 100 - 50;
-    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
-    gpio_clear(GPIOB, GPIO8);
-    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
-    gpio_set(GPIOB, GPIO9);
-}
-
-void side_two()
-{
-    voltage1 = -5;
-    pwm_value1 = 100 - 41;
-    voltage2 = 6;
-    pwm_value2 = 50;
-    pwm_timer_4.pwmWrite(pwm_value1, TIM_OC1);
-    gpio_set(GPIOB, GPIO8);
-    pwm_timer_4.pwmWrite(pwm_value2, TIM_OC2);
-    gpio_clear(GPIOB, GPIO9);
-}
-
 void joint_read() 
 {
     joint_one_h = 0;
@@ -93,12 +69,8 @@ void joint_read()
     {
         joint_one_h=dma2_interface.memory_buffer[0];
         joint_two_h=dma2_interface.memory_buffer[1];   
-        joint_two_h-=1580;
-        joint_one_h-=250;
-        if(joint_one_h > 2180)
-        {
-            joint_one_h = -0.0825*(joint_one_s - 2430);
-        }
+        joint_one_h-=1050;
+        joint_two_h-=1110;
         if(joint_one_h < 0)
         {
             joint_one_h = 0;
@@ -111,8 +83,8 @@ void joint_read()
         joint_two_s+=joint_two_h;
     }   
 
-    joint_one = joint_one_s*0.009 - 90;
-    joint_two = joint_two_s*0.00825 - 90;
+    joint_one = joint_one_s*0.017 - 90;
+    joint_two = joint_two_s*0.0087 - 90;
 
 }
 
@@ -142,7 +114,7 @@ int main(void)
                     GPIO_OSPEED_25MHZ,  GPIO9);
     gpio_clear(GPIOB, GPIO9);
     gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO10);
-    servo_system.servoIn_initialize(0, 50);
+    servo_system.servoIn_initialize(0, 0);
     joint_controller.controller_initialize(0, 1, GPIOB, GPIO8, GPIOB, GPIO9, &adc_port_a,
                                            &servo_system, &pwm_timer_4, RCC_GPIOB);        
     
@@ -155,39 +127,24 @@ int main(void)
         }
     }
 
-    while(true)
+    uint16_t dr = 0;
+    while(dr < 400)
     {
-          
         if(g_counter_millis - time_reference1 > SYSTEM_TICK_MS(5))
         {
-            //joint_read();
-            //joint_controller.loopDMA(joint_one, joint_two);
+            joint_read();
+            joint_controller.loopDMA(joint_one, joint_two);
+
+            time_reference1 = g_counter_millis;
+            joint_one_data[dr] = joint_one;
+            joint_two_data[dr] = joint_two;
+            dr+=1;
             time_reference1 = g_counter_millis;
         }
-
-        if(g_counter_millis - time_reference2 > SYSTEM_TICK_MS(275))
-        {
-            joint_two=dma2_interface.memory_buffer[1];   
-            joint_one=dma2_interface.memory_buffer[0];   
-
-            //serial_interface.usartSend_char("1: ");
-            serial_interface.usartSend_integer(joint_one);
-            //serial_interface.usartSend_char("2: ");
-            serial_interface.usartSend_integer(joint_two);
-            time_reference2 = g_counter_millis;
-        }
-
-
-        if(g_counter_millis > SYSTEM_TICK_SEC(4))
-        {   
-            joint_controller.Update(arr_setpoint1[GLOBAL_LINK_SETPOINT], arr_setpoint2[GLOBAL_LINK_SETPOINT]);
-            GLOBAL_LINK_SETPOINT++;
-            if(GLOBAL_LINK_SETPOINT > 5)
-            {
-                GLOBAL_LINK_SETPOINT = 0;
-            }
-            time_reference1 = 0; time_reference2 = 0;
-            g_counter_millis = 0;
-        }
+    }
+    for(uint16_t data = 0; data < 400; data++)
+    {
+        serial_interface.usartSend_integer(joint_one_data[data]);
+        serial_interface.usartSend_integer(joint_two_data[data]);
     }
 }

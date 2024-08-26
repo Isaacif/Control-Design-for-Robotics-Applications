@@ -101,7 +101,8 @@ class servoIn_Controller
         int16_t e2_k_1 = 0;
         float u1_k = 0;
         float u2_k = 0;
-        bool setpointchanged;
+        bool setpointOnechanged;
+        bool setpointTwochanged;
         float x1_l1_est_k_1;
         float x2_l1_est_k_1;
         float x1_l1_est_k = 0;
@@ -121,7 +122,7 @@ class servoIn_Controller
 
 
         int servoIn_initialize(int16_t setpoint1, int16_t setpoint2);
-        void configureSP(int16_t setpoint1, int16_t setpoint2);
+        void configureSP(int16_t setpoint, int8_t ID);
         float computeControlAction(int16_t sensor1_k, int16_t sensor2_k, int16_t time_period);
         float integralMax(float integral, int16_t max_value);
         float error_thresold(int16_t error, int16_t max_value);

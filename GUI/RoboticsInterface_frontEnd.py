@@ -114,7 +114,7 @@ class robotGUI():
     """
 
     def make_gui(self, glwidget) -> QMainWindow:
-        labels = ["Joint: ", "Angle: "]
+        labels = ["Junção: ", "Angulo: "]
         line_edits = []
 
         self.window = QMainWindow()
@@ -124,7 +124,7 @@ class robotGUI():
         layout = QGridLayout()
         layout.addWidget(glwidget, 0 , 0, 10, 10)
 
-        mybutton = QPushButton("SEND DATA ")
+        mybutton = QPushButton("ENVIA DADOS")
         mybutton.clicked.connect(self.clickHandler)
         layout.addWidget(mybutton, 11, 8)
 
@@ -172,7 +172,7 @@ class robotGUI():
         text = line_edit.text()
         print(text, line_content[1])
         if line_content[1] == 0:
-            self.desired_joint = int(text)
+            self.desired_joint = int(text) + 1
             print('CONFIGURED')
         elif line_content[1] == 1:
             self.desired_angle = int(text)*0.01745329251
@@ -187,10 +187,16 @@ class robotGUI():
         it does so by HTTP Post method, using a JOINT/ANGLE protocol.
         """
         self.PendingRequest = True
-        self.desired_angle = round(651.25 * self.desired_angle)
+        self.desired_angle = round(57.29*self.desired_angle - 90)
         print(self.desired_angle)
         print("Sending data")
+        if self.desired_joint == 2:
+            self.desired_joint = 1000
+        if self.desired_joint == 3:
+            self.desired_joint = 1001
+        
         data = {"Joint": str(self.desired_joint), "Angle": str(self.desired_angle)}
+
         try:
             response = requests.post(self.url, data=data, timeout=10)
             print(response.text)

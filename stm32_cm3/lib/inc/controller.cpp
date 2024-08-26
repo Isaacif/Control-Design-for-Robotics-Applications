@@ -53,11 +53,17 @@ void controller::controller_initialize(uint8_t id_1, uint8_t id_2, uint32_t GPOR
     gpio_clear(GPIO_PORT_INB2, GPIO_PIN_INB2);
 }
 
-void controller::Update(int8_t setpoint1, int8_t setpoint2)
+void controller::Update(int8_t setpoint, int8_t ID)
 {
-    this->set_point1 = setpoint1;
-    this->set_point2 = setpoint2;
-    Ji_controller->configureSP(setpoint1, setpoint2);
+    if(ID == 1)
+    {
+        this->set_point1 = setpoint;
+    }
+    if(ID == 2)
+    {
+        this->set_point2 = setpoint;
+    }
+    Ji_controller->configureSP(setpoint, ID);
 }
 
 void controller::loop()

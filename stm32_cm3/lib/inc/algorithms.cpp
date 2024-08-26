@@ -175,14 +175,16 @@ servoIn_Controller::servoIn_Controller(int16_t setpoint1, int16_t setpoint2)
 {
     r1_k = setpoint1;
     r2_k = setpoint2;
-    setpointchanged = true;
+    setpointOnechanged = true;
+    setpointTwochanged = true;
 }
 
 int servoIn_Controller::servoIn_initialize(int16_t setpoint1, int16_t setpoint2)
 {
     r1_k = setpoint1;
     r2_k = setpoint2;
-    setpointchanged = true;
+    setpointOnechanged = true;
+    setpointTwochanged = true;
 
     for(int8_t nb = 0; nb < 5; nb++)
     {
@@ -190,11 +192,18 @@ int servoIn_Controller::servoIn_initialize(int16_t setpoint1, int16_t setpoint2)
     }
 }
 
-void servoIn_Controller::configureSP(int16_t setpoint1, int16_t setpoint2)
+void servoIn_Controller::configureSP(int16_t setpoint, int8_t ID)
 {
-    r1_k = setpoint1;
-    r2_k = setpoint2;
-    setpointchanged = true;
+    if(ID == 1)
+    {
+        r1_k = setpoint;
+        setpointOnechanged = true;
+    }
+    if(ID == 2)
+    {
+        r2_k = setpoint;
+        setpointTwochanged = true;
+    }
 }
 
 float servoIn_Controller::integralMax(float integral, int16_t max_value)
@@ -289,31 +298,40 @@ float servoIn_Controller::computeControlAction(int16_t sensor1_k, int16_t sensor
     e1_k = r1_k - sensor1_k;
     e2_k = r2_k - sensor2_k;
 
-    e1_k = error_thresold(e1_k, 4);
+    e1_k = error_thresold(e1_k, 3);
     e2_k = error_thresold(e2_k, 3);
-    if(setpointchanged)
+    if(setpointOnechanged)
     {
         x1_l1_est_k = sensor1_k;
+        x1_l1_int = 0;
+        setpointOnechanged = false;
+    }
+    if(setpointTwochanged)
+    {
         x1_l2_est_k = sensor2_k;
-        x1_l1_int = 0; x1_l2_int = 0;
-        setpointchanged = false;
+        x1_l2_int = 0;
+        setpointTwochanged = false;
     }
     x1_l1_int += e1_k;
     x1_l2_int += e2_k; 
-    x1_l1_est_k_1 = -0.9*x1_l1_est_k + 0.005*x2_l1_est_k + 1.9*sensor1_k;
-    x2_l1_est_k_1 = -175.47*x1_l1_est_k + 0.7*x2_l1_est_k + 3.11*u1_k + 178*sensor1_k;
-    x1_l2_est_k_1 = -1.3*x1_l2_est_k + 0.005*x2_l2_est_k + 2.3*sensor2_k;
-    x2_l2_est_k_1 =  1.12*x2_l2_est_k - 0.1256*x3_l2_est_k + 0.816*u2_k + 284*(sensor2_k - x1_l2_est_k);
-    x3_l2_est_k_1 = x2_l2_est_k + 260*(sensor2_k - x1_l2_est_k);
+    x1_l1_est_k_1 = -1.15*x1_l1_est_k + 0.005*x2_l1_est_k + 2.15*sensor1_k;
+    x2_l1_est_k_1 = 0.76*x2_l1_est_k + 5.28*u1_k + 265.5*(sensor1_k - x1_l1_est_k);
+    x1_l2_est_k_1 = -1.14*x1_l2_est_k + 0.005*x2_l2_est_k + 2.14*sensor2_k;
+    x2_l2_est_k_1 =  0.812*x2_l2_est_k + 2.82*u2_k + 265*(sensor2_k - x1_l2_est_k);
 
-    x2_l1_est_k = integralMax(x1_l1_int, 2000);
-    x2_l2_est_k = integralMax(x1_l1_int, 2000);
-    x1_l1_int = integralMax(x1_l1_int, 175);
-    x1_l2_int = integralMax(x1_l2_int, 300+25*std::abs(r2_k));
-    u1_k = -0.556*sensor1_k - 0.00577*x2_l1_est_k + 0.01925*x1_l1_int;
-    u2_k = -1.88*sensor2_k - 0.0345*x2_l2_est_k - 0.01917*x3_l2_est_k_1 + 0.118*x1_l2_int;
-    u1_k = 0;
-    u2_k = integralMax(u2_k, 100);
+    x2_l1_est_k = integralMax(x1_l1_int, 1000);
+    x2_l2_est_k = integralMax(x1_l1_int, 500);
+    x1_l1_int = integralMax(x1_l1_int, 65);
+    x1_l2_int = integralMax(x1_l2_int, 55);
+
+    u1_k = 1.505*e1_k -0.02*x2_l1_est_k_1 + 0.0563*x1_l1_int;
+    u2_k = 2.836*e2_k -0.0574*x2_l2_est_k_1 + 0.106*x1_l2_int;
+    u1_k = integralMax(u1_k, 50);
+    u2_k = integralMax(u2_k, 60);
+    if(std::abs(u2_k) < 10)
+    {
+        u2_k = 0;
+    }
     x1_l1_est_k = x1_l1_est_k_1; x2_l1_est_k = x2_l1_est_k_1;
     x1_l2_est_k = x1_l2_est_k_1; x2_l2_est_k = x2_l2_est_k_1;
 }

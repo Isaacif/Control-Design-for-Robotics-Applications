@@ -38,11 +38,13 @@ void USART_peripheral::USART_initialization(uint16_t USART_TX, uint16_t USART_RX
     rcc_periph_clock_enable(RCC_USART);
     rcc_periph_clock_enable(RCC_GPORT_SELECT);
 
-    gpio_mode_setup(GPIO_PORT_SELECT, GPIO_MODE_AF,  GPIO_PUPD_PULLUP, USART_TX | USART_RX);
+    gpio_mode_setup(GPIO_PORT_SELECT, GPIO_MODE_AF,  GPIO_PUPD_NONE, USART_TX | USART_RX);
     gpio_set_af(GPIO_PORT_SELECT, GPIO_AF7, USART_TX | USART_RX);
     usart_set_baudrate(usart_register, usart_baudrate);
     usart_set_databits(usart_register, data_bits);
     usart_set_stopbits(usart_register, USART_STOPBITS_1);
+    usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
+
     usart_set_parity(usart_register, USART_PARITY_NONE);
     
     nvic_enable_irq(NVIC_USART1_IRQ);
