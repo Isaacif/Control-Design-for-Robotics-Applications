@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <string>
 #include "math.h"
+#include <queue>
 
 #include "utils.h"
 #include "ADC_peripheral.hpp"
@@ -141,7 +142,7 @@ class IObserver
         int id;
 
         virtual ~IObserver(){};
-        virtual void Update(int8_t setpoint1, int8_t setpoint2);
+        virtual void Update(int8_t setpoint, int16_t sensor1_k, int16_t sensor2_k, int8_t ID,  int8_t K_iter);
 };
 
 class ISubject 
@@ -152,6 +153,8 @@ class ISubject
         uint8_t Joint;
         int16_t set_point1;  
         int16_t set_point2;   
+        int16_t sensor1_k, sensor2_k;
+        int8_t setpoint, ID, K_iter;
 
         void Attach(IObserver *observer);
         void Detach(IObserver *observer);

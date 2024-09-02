@@ -37,11 +37,20 @@ class controller : public IObserver
         int id2;
         int8_t set_point1 = 0;   
         int8_t set_point2 = 0;    
+        float set_point_target1 = 10;   
+        float set_point_target2 = 10;  
+        float currentTargetOne = 10;   
+        float currentTargetTwo = 10; 
+        float K_iteration = 1;
+        int8_t currentStep_one = 0;
+        int8_t currentStep_two = 0;
+        std::vector<float> trajectory_one;
+        std::vector<float> trajectory_two;
+
 
         uint16_t sensor_k;
         int32_t pwm_value_k1;
         int32_t pwm_value_k2;
-
 
         uint16_t time_period;
         uint32_t GPIO_PORT_INB1;
@@ -64,10 +73,15 @@ class controller : public IObserver
                    ADC_peripheral *a_sensor, servoIn_Controller *Ji_controller, 
                    PWM_peripheral *u_output, rcc_periph_clken RCC_GPIOP);
 
+        void trajectoryPlanner(int8_t ID, float sensor1_k, float sensor2_k);
+        float getError(int8_t ID);
         void attach_parameters(loop_parameters_t c_parameters);
         virtual void loop();
+        void clearQueue(int8_t ID);
+        bool hasReached(int8_t ID, int8_t target, int16_t sensor_kIter);
+        bool iteractPath(int8_t ID, int16_t currentTargetPoint);
         virtual void loopDMA(int16_t reading1, int16_t reading2);
-        virtual void Update(int8_t setpoint, int8_t ID) override;
+        virtual void Update(int8_t setpoint, int16_t sensor1_k, int16_t sensor2_k, int8_t ID,  int8_t K_iter) override;
         void pwm_mapping(int32_t pwm_value, uint8_t joint_id);
 
     private:

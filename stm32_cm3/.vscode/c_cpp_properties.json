@@ -8,25 +8,25 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
                 "C:/Users/isaac/.platformio/packages/framework-libopencm3",
                 "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
-                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
-                "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
+                "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
                 ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
-                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
-                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
+                    "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/include",
+                    "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/src",
+                    "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/inc",
                     "C:/Users/isaac/.platformio/packages/framework-libopencm3",
                     "C:/Users/isaac/.platformio/packages/framework-libopencm3/include",
-                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
-                    "c:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
+                    "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/lib/rtos",
+                    "C:/Users/isaac/Documents/Robotics/Control-Design-for-Robotics-Applications/stm32_cm3/.pio/libdeps/blackpill_f411ce/Unity/src",
                     ""
                 ]
             },

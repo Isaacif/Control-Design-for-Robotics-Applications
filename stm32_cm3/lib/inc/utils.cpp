@@ -1,5 +1,44 @@
 #include "utils.h"
 
+Queue * create_queue() {
+    Queue * qu = new Queue;
+    qu -> head = NULL;
+    qu -> tail = NULL;
+    return qu;
+}
+
+unsigned is_empty(Queue * qu) {
+    return qu -> head == NULL && qu -> tail == NULL;
+}
+
+float get_head(Queue * qu) {
+    assert(!is_empty(qu));
+    return qu -> head -> key;
+}
+
+void enqueue(Queue * qu, float key) {
+    Node * nd = new Node;
+    nd -> key = key;
+    nd -> next = NULL;
+    if (is_empty(qu)) {
+        qu -> head = nd;
+        qu -> tail = nd;
+    } else {
+        qu -> tail -> next = nd;
+        qu -> tail = nd;
+    }
+}
+
+void dequeue(Queue * qu) {
+    assert(!is_empty(qu));
+    Node * tmp_node = qu -> head;
+    qu -> head = tmp_node -> next;
+    delete tmp_node;
+    if (qu -> head == NULL) 
+        qu -> tail = NULL;
+}
+
+
 void cicularBufferInit(sensors_circular_buffer_t *circular_buffer)
 {
     circular_buffer->head = 0;

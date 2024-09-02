@@ -37,15 +37,17 @@
 //
 //*****************************************************************************
 
-const char* NETWORK_SSID = "MOB-ADRIANO";              // Network Login setup
-const char* NETWORK_PASSWORD = "1801bianca";          // Network password setup
+const char* NETWORK_SSID = "TcTeste";              // Network Login setup
+const char* NETWORK_PASSWORD = "salve12345";          // Network password setup
 
 WebServer espWebServer(WEB_SERVER_PORT);    // HTTP server object 
 HardwareSerial SerialPort(2);               // USART object
 
 String Joint = "";                          // Joint value handler
 String Angle = "";                          // Angle value handler
-int stm32_message;
+String K_iter = "";
+String bufferMessage = "";
+int stm32_message = 0;
 
 /**
  * @brief requestHandler()
@@ -57,26 +59,25 @@ void requestHandler()
     if(espWebServer.hasArg("Joint"))        // Checks if the message has the Joint key.
     {
       Joint = espWebServer.arg("Joint");
-      stm32_message = Joint.toInt();
       espWebServer.send(200, "text/plain", "Message received: " + Joint);    // Gives a sucess indication.
-      SerialPort.println(Joint);            // Sends the data to the stm32.
-      Serial.println(Joint);
+    }
+    if (espWebServer.hasArg("K_iter")) // Checks if the message has the Angle key.
+    {
+      K_iter = espWebServer.arg("K_iter");
+      espWebServer.send(200, "text/plain", "Message received: " + K_iter); // Gives a sucess indication.
     }
     if (espWebServer.hasArg("Angle")) // Checks if the message has the Angle key.
     {
       Angle = espWebServer.arg("Angle");
       espWebServer.send(200, "text/plain", "Message received: " + Angle); // Gives a sucess indication.
-      stm32_message = Angle.toInt();
-      SerialPort.println(Angle);            // Sends the data to the stm32.
+      stm32_message = 1;
       Serial.println("Sucessful Comunication. ");
-      Serial.println(Angle);
     }
     else 
     {
       espWebServer.send(400, "text/plain", "Bad Request");      // Gives a failure indication.
       Serial.println("Failed Comunication. ");
     }
-
 }
 
 /**
@@ -119,11 +120,19 @@ void loop()
     espWebServer.handleClient();
 
 
-    if (SerialPort.available()) 
+    if(SerialPort.available()) 
     {
         int receivedMessage = SerialPort.read();
-        Serial.print("Received message: ");
         Serial.println(receivedMessage);
+    }
+
+    if(stm32_message)
+    {
+      bufferMessage = Joint + "," + K_iter;
+      bufferMessage += "," + Angle;
+      Serial.println(bufferMessage);
+      SerialPort.println(bufferMessage);
+      stm32_message = 0;
     }
     
 }

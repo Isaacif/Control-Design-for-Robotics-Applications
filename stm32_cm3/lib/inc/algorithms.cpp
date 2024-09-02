@@ -295,11 +295,19 @@ int16_t servoIn_Controller::check_integral_limit(int16_t ri_k)
 
 float servoIn_Controller::computeControlAction(int16_t sensor1_k, int16_t sensor2_k, int16_t time_period)
 {
+    if(r1_k == 0)
+    {
+        r1_k = -10;
+    }
+    if(r1_k < - 85)
+    {
+        r1_k = -85;
+    }
     e1_k = r1_k - sensor1_k;
     e2_k = r2_k - sensor2_k;
 
-    e1_k = error_thresold(e1_k, 3);
-    e2_k = error_thresold(e2_k, 3);
+    e1_k = error_thresold(e1_k, 4);
+    e2_k = error_thresold(e2_k, 4);
     if(setpointOnechanged)
     {
         x1_l1_est_k = sensor1_k;
@@ -321,14 +329,15 @@ float servoIn_Controller::computeControlAction(int16_t sensor1_k, int16_t sensor
 
     x2_l1_est_k = integralMax(x1_l1_int, 1000);
     x2_l2_est_k = integralMax(x1_l1_int, 500);
-    x1_l1_int = integralMax(x1_l1_int, 65);
-    x1_l2_int = integralMax(x1_l2_int, 55);
+    x1_l1_int = integralMax(x1_l1_int, 75);
+    x1_l2_int = integralMax(x1_l2_int, 75);
 
     u1_k = 1.505*e1_k -0.02*x2_l1_est_k_1 + 0.0563*x1_l1_int;
     u2_k = 2.836*e2_k -0.0574*x2_l2_est_k_1 + 0.106*x1_l2_int;
-    u1_k = integralMax(u1_k, 50);
+    u1_k = integralMax(u1_k, 60);
     u2_k = integralMax(u2_k, 60);
-    if(std::abs(u2_k) < 10)
+
+    if(std::abs(u2_k) < 8)
     {
         u2_k = 0;
     }
@@ -353,7 +362,7 @@ void ISubject::Detach(IObserver *observer)
 
 void ISubject::Notify()
 {
-    observers[Joint]->Update(set_point1, set_point2); 
+    observers[Joint]->Update(setpoint, sensor1_k, sensor2_k, ID, K_iter); 
 }
 
 void ISubject::setState(uint8_t sJoint, int16_t spoint)

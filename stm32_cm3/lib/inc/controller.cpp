@@ -53,17 +53,90 @@ void controller::controller_initialize(uint8_t id_1, uint8_t id_2, uint32_t GPOR
     gpio_clear(GPIO_PORT_INB2, GPIO_PIN_INB2);
 }
 
-void controller::Update(int8_t setpoint, int8_t ID)
+void controller::Update(int8_t setpoint, int16_t sensor1_k, int16_t sensor2_k, int8_t ID, int8_t K_iter)
 {
     if(ID == 1)
     {
-        this->set_point1 = setpoint;
+        this->set_point_target1 = setpoint;
     }
     if(ID == 2)
     {
-        this->set_point2 = setpoint;
+        this->set_point_target2 = setpoint;
     }
-    Ji_controller->configureSP(setpoint, ID);
+    this->K_iteration = K_iter;
+    this->trajectoryPlanner(ID, sensor1_k, sensor2_k);
+    //Ji_controller->configureSP(setpoint, ID);
+}
+
+bool controller::iteractPath(int8_t ID, int16_t currentTargetPoint)
+{
+    Ji_controller->configureSP(currentTargetPoint, ID);
+}
+
+float controller::getError(int8_t ID)
+{
+    if(ID == 1)
+    {
+        return Ji_controller->e1_k;
+    }
+    if(ID == 2)
+    {
+        return Ji_controller->e2_k;
+    }
+}
+
+void controller::clearQueue(int8_t ID)
+{
+    if(ID == 1)
+    {
+        while(!this->trajectory_one.empty())
+        {
+            this->trajectory_one.erase(this->trajectory_one.begin());
+        }
+    }
+    if(ID == 2)
+    {
+        while(!this->trajectory_two.empty())
+        {
+            this->trajectory_two.erase(this->trajectory_two.begin());
+        }
+    }
+}
+
+void controller::trajectoryPlanner(int8_t ID, float sensor1_k, float sensor2_k)
+{   
+    float reach_target, target, step;
+    this->clearQueue(ID);
+    if(ID == 1)
+    {
+        step = (this->set_point_target1 - sensor1_k)/this->K_iteration;
+        reach_target = sensor1_k;
+        target = this->set_point_target1;
+        for(int interation = 0; interation < this->K_iteration; interation++)
+        {
+            reach_target+=step;
+            this->trajectory_one.push_back(reach_target);
+        }
+        currentTargetOne = this->trajectory_one[0];
+        Ji_controller->configureSP(currentTargetOne, ID);
+        this->trajectory_one.erase(this->trajectory_one.begin());
+        this->currentStep_one = 0;
+    }
+    if(ID == 2)
+    {
+        step = (this->set_point_target2 - sensor2_k)/this->K_iteration;
+        reach_target = sensor2_k;
+        target = this->set_point_target2;
+        for(int interation = 0; interation < this->K_iteration; interation++)
+        {
+            reach_target+=step;
+            this->trajectory_two.push_back(reach_target);
+        }
+        currentTargetTwo = this->trajectory_two[0];
+        Ji_controller->configureSP(currentTargetTwo, ID);
+        this->trajectory_one.erase(this->trajectory_one.begin());
+        this->currentStep_two = 0;
+    }
 }
 
 void controller::loop()
@@ -76,6 +149,12 @@ void controller::loop()
         pwm_value_k1 = 25;
     }
     this->pwm_mapping(pwm_value_k1, 0);
+}
+
+bool controller::hasReached(int8_t ID, int8_t target, int16_t sensor_kIter)
+{
+    bool reached = std::abs(target - sensor_kIter) < 8;
+    return reached;
 }
 
 void controller::loopDMA(int16_t reading1, int16_t reading2)
