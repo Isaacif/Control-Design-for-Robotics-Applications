@@ -38,6 +38,73 @@ from PyQt5.QtWidgets import *
 import time
 import requests
 import numpy as np
+import threading
+import math 
+from klampt.math import vectorops,so3
+from klampt.model import ik
+
+import numpy as np
+
+L1 = 80
+L2 = 65.5
+
+theta1 = np.linspace(0, np.pi, 1000)
+theta2 = np.linspace(-np.pi/2, np.pi/2, 1000)
+Theta1, Theta2 = np.meshgrid(theta1, theta2)
+
+# Calculate the x and y coordinates of the end-effector
+X = L1 * np.cos(Theta1) + L2 * np.cos(Theta1 + Theta2)
+Y = L1 * np.sin(Theta1) + L2 * np.sin(Theta1 + Theta2) + 134.75
+
+def find_closest_angles(x1, y1, X, Y, Theta1, Theta2, error_limit=1e-1):
+    # Compute the Euclidean distance between (x1, y1) and all points in (X, Y)
+    distances = np.sqrt((X - x1)**2 + (Y - y1)**2)
+    
+    # Find the index of the minimum distance
+    min_distance_index = np.unravel_index(np.argmin(distances), distances.shape)
+    min_distance = distances[min_distance_index]
+    
+    # Check if the minimum distance is within the error limit
+    if min_distance <= error_limit:
+        # Return the corresponding (theta1, theta2) values
+        return Theta1[min_distance_index], Theta2[min_distance_index]
+    else:
+        # Return None if no point is within the error limit
+        return None
+
+
+def solve_2R_inverse_kinematics(x,y,L1=1,L2=1):
+    """For a 2R arm centered at the origin, solves for the joint angles
+    (q1,q2) that places the end effector at (x,y).
+
+    The result is a list of up to 2 solutions, e.g. [(q1,q2),(q1',q2')].
+    """
+    y-=1.08
+    D = vectorops.norm((x,y))
+    print(f"D value {D}")
+    thetades = math.atan2(y,x)
+    if D == 0:
+        raise ValueError("(x,y) at origin, infinite # of solutions")
+    c2 = (D**2-0.70128)/(0.6864)
+    q2s = []
+    if c2 < -1:
+        print("solve_2R_inverse_kinematics: (x,y) inside inner circle")
+        return []
+    elif c2 > 1:
+        print("solve_2R_inverse_kinematics: (x,y) out of reach")
+        return []
+    else:
+        if c2 == 1:
+            q2s = [math.acos(c2)]
+        else:
+            q2s = [math.acos(c2),-math.acos(c2)]
+    res = []
+    for q2 in q2s:
+        thetaactual = math.atan2(math.sin(q2),0.65+0.528*math.cos(q2))
+        q1 = thetades - thetaactual
+        res.append((q1,q2))
+    print(res)
+    return res
 
 """
 main GUI class: 
@@ -66,6 +133,8 @@ class robotGUI():
         self.axis_width = 0.005  # Width of the axes lines
         self.coordinate_elements = []
         # X-axis (red)
+
+        self.world_target =  [0, 0, 0]
 
         # Get the joint's world position
         self.joint_rotation_one = self.robot.link(self.joint_index_one).getTransform()[0]
@@ -106,7 +175,8 @@ class robotGUI():
 
         self.esp_ip = "192.168.136.82"
         self.url = f"http://{self.esp_ip}/"
-
+        self.firstSend = False
+        self.client_thread = threading.Thread(target=self.create_send_thread)
     """
     Screen Rendering and animating function
     Renders world
@@ -129,18 +199,29 @@ class robotGUI():
                                                   self.robot.link(self.joint_index_two).getWorldPosition((0, 0, 0))))
 
         self.joint_two_position =  self.robot.link(self.joint_index_two).getWorldPosition((0, 0, 0))
-        end_effector_position =  [0, 
+        end_effector_position_an =  [0, 
                                   self.joint_two_position[1] + 0.421*np.cos(self.robot.getConfig()[self.joint_index_one]+self.robot.getConfig()[self.joint_index_two]),
                                   self.joint_two_position[2] + 0.58*np.sin(self.robot.getConfig()[self.joint_index_one]+self.robot.getConfig()[self.joint_index_two])]
 
-        end_effector_frame = model.coordinates.Point(end_effector_position)
+        theta1 = self.robot.getConfig()[self.joint_index_one]
+        theta2 = self.robot.getConfig()[self.joint_index_two]
+        end_effector_position = [0, 80*np.cos(theta1) + 65.5*np.cos(theta1+theta2), 80*np.sin(theta1) + 65.5*np.sin(theta2 + theta1 ) + 134.75]
+        end_effector_frame = model.coordinates.Point(end_effector_position_an)
+        if(round(end_effector_position[1]) == -1):
+            end_effector_position[1] = 0
+
         vis.add("Elo 1", self.axis_one, color=(1, 0, 0, 0.5))     
         vis.add("Elo 2", self.axis_two, color=(0, 1, 0, 0.5))
-        vis.add("END EFFECTOR", end_effector_frame, color=(1,0,0,0.5), size=12)
+        #vis.add("END EFFECTOR", end_effector_frame, color=(1,0,0,0.5), size=12)
+        #vis.add("END EFFECTOR", self.robot.link(2).getWorldPosition([0,0.65,0]), color=(1,0,0,0.5), size=15)
+        vis.add("END EFFECTOR", self.robot.link(3).getWorldPosition([0,0.55,0]), color=(1,0,0,0.5), size=15)
         vis.setAttribute("Elo 1", 'hide_label', True)
         vis.setAttribute("Elo 2", 'hide_label', True)
+        if(self.mycombo_box.currentText() == "Cinemática Inversa"):
+            vis.add("target point", self.world_target, size = 20)
         #vis.setAttribute("end_effector",'hide_label', True)
-        vis.addText(name="coordinates", text=f"Coordenadas End Effector X: {round(125*end_effector_position[0], 0)} Y: {int(125*end_effector_position[1])} Z: {round(125*end_effector_position[2], 0)}", position=[50, 795], color=(0.2, 0.25, 0.95, 1), size=25)
+        #vis.addText(name="coordinates", text=f"Coordenadas End Effector X: {round(125*end_effector_position[0], 0)} Y: {int(125*end_effector_position[1])} Z: {round(125*end_effector_position[2], 0)}", position=[50, 795], color=(0.2, 0.25, 0.95, 1), size=25)
+        vis.addText(name="coordinates", text=f"Coordenadas End Effector X: {round(end_effector_position[0])} Y: {round(end_effector_position[1])} Z: {round(end_effector_position[2])}", position=[50, 795], color=(0.2, 0.25, 0.95, 1), size=25)
         vis.addText(name="Step", text=f"Executando Passo: {self.stepToShow}", position=[25, 50], color=(0.98, 0.25, 0.2, 1), size=20)
         self.coordinate_elements.append("Coordenadas Elo 1")
         self.coordinate_elements.append("Coordenadas Elo 2") 
@@ -152,6 +233,7 @@ class robotGUI():
         vis.show()
         #self.simulation.setGravity((0, 0, -9.8))
         self.simulation.setGravity((0, 0, 0))
+        self.simulation.enableContactFeedbackAll()
         print(self.q_init)
         while vis.shown():
             if(self.mycheckBox.isChecked()):
@@ -163,6 +245,7 @@ class robotGUI():
                     vis.remove("coordinates")
                     vis.remove("Elo 1")
                     vis.remove("Elo 2")
+                    vis.remove("target point")
                     vis.remove("Step")
                     self.coordinate_elements.clear()
             if self.PendingMoviment:
@@ -178,7 +261,7 @@ class robotGUI():
                     if(self.showingSteps):
                         self.stepToShow+=1
                         time.sleep(0.75)
-
+            
                 if(self.showingSteps):
                     if(self.stepToShow >= len(self.step_angles_visualization)):
                         self.showingSteps = False
@@ -210,6 +293,16 @@ class robotGUI():
         self.desired_angles = self.step_angles_visualization[self.stepToShow][0]
         self.desired_joints = self.step_angles_visualization[self.stepToShow][1]
 
+    def OnComboChange(self):
+        if(self.mycombo_box.currentText() == "Cinemática Direta"):
+            self.mylabel1.setText("Junção")
+            self.mylabel2.setText("Ângulo")
+            self.description.setText("Configuração de Parâmetros: \nIterações (1, 10) \nJunção (1,2) \nÂngulo (0, 180)")
+        elif(self.mycombo_box.currentText() == "Cinemática Inversa"):
+            self.mylabel1.setText("Coordenada Y End Effector")
+            self.mylabel2.setText("Coordenada Z End Effector")
+            self.description.setText("Configuração de Parâmetros: \nIterações (1, 10) \nPx (-145, 145) \nPy(69.25, 280)")
+
 
     def make_gui(self, glwidget) -> QMainWindow:
         labels = ["Junção: ", "Ângulo: "]
@@ -225,9 +318,9 @@ class robotGUI():
         layout = QGridLayout()
         layout.addWidget(glwidget, 0 , 0, 16, 11)
 
-        description = QLabel("Configuração de Parâmetros: \nJunção (1,2) \nÂngulo (0, 180) \nIterações (1, 10)")
-        description.setFont(QFont("Futura", 12))
-        layout.addWidget(description, 0, 11)
+        self.description = QLabel("Configuração de Parâmetros: \nIterações (1, 10) \nJunção (1,2) \nÂngulo (0, 180)")
+        self.description.setFont(QFont("Futura", 12))
+        layout.addWidget(self.description, 0, 11)
 
         mybutton_record = QPushButton("Gravar Passo")
         mybutton_record.setFont(QFont("Futura", 16))
@@ -238,6 +331,13 @@ class robotGUI():
         mybutton_clear.setFont(QFont("Futura", 16))
         mybutton_clear.clicked.connect(self.cleanSteps)
         layout.addWidget(mybutton_clear, 13, 11)
+
+        self.mycombo_box = QComboBox()
+        self.mycombo_box.addItem("Cinemática Direta")
+        self.mycombo_box.addItem("Cinemática Inversa")
+        self.mycombo_box.setFixedSize(180, 50)
+        self.mycombo_box.activated[str].connect(self.OnComboChange)
+        layout.addWidget(self.mycombo_box, 3, 11, alignment=Qt.AlignCenter)
 
         mybutton = QPushButton("Enviar Dados")
         mybutton.setFont(QFont("Futura", 16))
@@ -273,16 +373,23 @@ class robotGUI():
         self.mycheckBox_repeat.setFont(QFont("Futura", 15))
         layout.addWidget(self.mycheckBox_repeat, 10, 11)
 
-        self.i=3
-        for label in labels:
-            mylabel = QLabel(label)
-            mylabel.setFont(QFont("Futura", 14))
-            line_edit = QLineEdit()
-            line_edit.setFixedSize(275, 25)
-            layout.addWidget(mylabel, self.i, 11)
-            layout.addWidget(line_edit,  self.i+1, 11)
-            line_edits.append(line_edit)
-            self.i+=2
+        self.i=4
+        self.mylabel1 = QLabel("Junção")
+        self.mylabel1.setFont(QFont("Futura", 14))
+        line_edit = QLineEdit()
+        line_edit.setFixedSize(275, 25)
+        layout.addWidget(self.mylabel1, self.i, 11)
+        layout.addWidget(line_edit,  self.i+1, 11)
+        line_edits.append(line_edit)
+        self.i+=2
+
+        self.mylabel2 = QLabel("Ângulo")
+        self.mylabel2.setFont(QFont("Futura", 14))
+        line_edit2 = QLineEdit()
+        line_edit2.setFixedSize(275, 25)
+        layout.addWidget(self.mylabel2, self.i, 11)
+        layout.addWidget(line_edit2,  self.i+1, 11)
+        line_edits.append(line_edit2)
 
 
         self.i = 0
@@ -327,37 +434,68 @@ class robotGUI():
     self.desired_angle: for the desired angle value
     """
     def printInput(self, line_content):
-        line_edit = line_content[0]
+        if(self.mycombo_box.currentText() == "Cinemática Direta"):
+            line_edit = line_content[0]
 
-        # Get the text from the QLineEdit widget
-        if(self.step_angles_visualization_clear_flag):
-            self.step_angles_visualization =  np.array([[[0, 0], [2,3]]])            
-            self.step_angles_visualization_clear_flag = False
-        text = line_edit.text()
-        print(text, line_content[1])
-        if line_content[1] == 0:
-            self.desired_joint = int(text) + 1
-            self.desired_joints[int(text) - 1] = self.desired_joint
-            print('CONFIGURED')
-        elif line_content[1] == 1:
-            self.desired_angle = int(text)*0.01745329251
-            self.desired_angles[self.desired_joint - 2] = self.desired_angle
-
-        self.desired_angle_STM = abs(round(57.29*self.desired_angle)) - 90
-        if(self.desired_joint == 3):
-                self.desired_angle -= 1.5707963259
+            # Get the text from the QLineEdit widget
+            if(self.step_angles_visualization_clear_flag):
+                self.step_angles_visualization =  np.array([[[0, 0], [2,3]]])            
+                self.step_angles_visualization_clear_flag = False
+            text = line_edit.text()
+            print(text, line_content[1])
+            if line_content[1] == 0:
+                self.desired_joint = int(text) + 1
+                self.desired_joints[int(text) - 1] = self.desired_joint
+                print('CONFIGURED')
+            elif line_content[1] == 1:
+                self.desired_angle = int(text)*0.01745329251
                 self.desired_angles[self.desired_joint - 2] = self.desired_angle
 
-        if self.desired_joint == 2:
-           self.desired_joint_STM = 1
-        if self.desired_joint == 3:
-            self.desired_joint_STM = 2
+            self.desired_angle_STM = abs(round(57.29*self.desired_angle)) - 90
+            if(self.desired_joint == 3):
+                    self.desired_angle -= 1.5707963259
+                    self.desired_angles[self.desired_joint - 2] = self.desired_angle
 
-        iter_number_toSTM = self.iter_number
-        if(line_content[1]):
-            self.step_angles.append({"Joint": str(self.desired_joint_STM), "K_iter": str(iter_number_toSTM), "Angle": str(self.desired_angle_STM)})
-        line_edit.clear()
+            if self.desired_joint == 2:
+                self.desired_joint_STM = 1
+            if self.desired_joint == 3:
+                self.desired_joint_STM = 2
 
+            iter_number_toSTM = self.iter_number
+            if(line_content[1]):
+                self.step_angles.append({"Joint": str(self.desired_joint_STM), "K_iter": str(iter_number_toSTM), "Angle": str(self.desired_angle_STM)})
+            line_edit.clear()
+
+        if(self.mycombo_box.currentText() == "Cinemática Inversa"):
+            line_edit = line_content[0]
+            text = line_edit.text()
+            print(text)
+            if(not(line_content[1])):
+                self.desired_y = int(text)
+            if(line_content[1]):
+                self.desired_z = int(text)
+                print(self.desired_y, self.desired_z)
+                self.world_target = [0, self.desired_y/121, self.desired_z/127]
+                joint_one, joint_two = find_closest_angles(self.desired_y, self.desired_z,  X, Y, Theta1, Theta2, error_limit=1)
+                self.desired_joints[0] = 2
+                self.desired_joints[1] = 3
+                self.desired_angles[0] = joint_one
+                self.desired_angles[1] = joint_two
+                print(joint_one, joint_two)
+                print(80*np.cos(joint_one) + 65.5*np.cos(joint_one+joint_two))
+                print(80*np.sin(joint_one) + 65.5*np.sin(joint_one+joint_two))
+                iter_number_toSTM = self.iter_number
+                self.desired_angle_STM = abs(round(57.29*joint_one)) - 90
+                self.step_angles.append({"Joint": str(self.desired_joints[0]-1), "K_iter": str(iter_number_toSTM), "Angle": str(self.desired_angle_STM)})
+                self.desired_angle_STM = abs(round(57.29*joint_two)) - 90
+                self.step_angles.append({"Joint": str(self.desired_joints[1]-1), "K_iter": str(iter_number_toSTM), "Angle": str(self.desired_angle_STM)})
+            line_edit.clear()
+
+
+
+
+
+        
     def HTTP_send_commands(self):
         """
         This function is called to send the input user data
@@ -366,24 +504,37 @@ class robotGUI():
         """
         self.PendingRequest = True
         print(self.setpoint_steps)
+        self.firstSend = True
+        self.send_command = True
+        if(not(self.client_thread.is_alive())):
+            try:
+                self.client_thread.start()
+            except RuntimeError as error:
+                pass
+
+    def create_send_thread(self):
         while(True):
-            for steps_to_target in self.setpoint_steps:
-                for data in steps_to_target:
-                    try:
-                        response = requests.post(self.url, data=data, timeout=5)
-                        print(response.text)
-                    except Exception as error:
-                        print("error")
-                    else:
-                        print("Sucess")
-                time.sleep(1+self.iter_number*0.1)
-            if(self.mycheckBox_repeat.isChecked()):
-                time.sleep(3)
-                continue
-            else:
-                break
-        self.setpoint_steps = []
-        
+            #print(f"REPETIR ENVIOS: {self.mycheckBox_repeat.isChecked()}")
+            #print(f"ENVIAR COMMANDO: {self.send_command}")
+            #print(f"PRIMEIRO ENVIO: {self.firstSend}")
+            if(not(self.mycheckBox_repeat.isChecked())):
+                self.send_command = False
+            if((self.mycheckBox_repeat.isChecked() and self.send_command) or self.firstSend):
+                for steps_to_target in self.setpoint_steps:
+                    for data in steps_to_target:
+                        try:
+                            response = requests.post(self.url, data=data, timeout=3.5)
+                            print(response.text)
+                        except Exception as error:
+                            print("error")
+                            continue
+                        else:
+                            print("Sucess")
+                    time.sleep(1+self.iter_number*0.1)
+                self.firstSend = False
+            if((not(self.mycheckBox_repeat.isChecked()))):
+                self.setpoint_steps = []
+
 if __name__ == '__main__':
     robotic_gui = robotGUI("tx90scenario0.xml")
     robotic_gui.show()
