@@ -173,7 +173,21 @@ void parse_message()
     }
 }
 
+int medir_tempo_exec()
+{
+    int amostras[10];
+    for(int i = 0; i < 10; i++)
+    {
+        int tinicio, tfinal;
 
+
+        tinicio = g_counter_millis;
+        joint_read(); 
+        servo_system.computeControlAction(joint_one, joint_two, 1);
+        tfinal = g_counter_millis;
+        amostras[i] = tfinal-tinicio;
+    }
+}
 
 int main(void)
 {

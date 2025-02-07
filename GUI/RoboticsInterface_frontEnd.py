@@ -173,8 +173,8 @@ class robotGUI():
 
         self.i = 0 # QGrid row/column index
 
-        self.esp_ip = "192.168.136.82"
-        self.url = f"http://{self.esp_ip}/"
+        self.esp_ip = "192.168.174.82"
+        self.url = f"http://{self.esp_ip}/" 
         self.firstSend = False
         self.client_thread = threading.Thread(target=self.create_send_thread)
     """
@@ -415,7 +415,7 @@ class robotGUI():
 
     
     def cleanSteps(self):
-        self.setpoint_steps.clear()
+        #self.setpoint_steps.clear()
         self.step_angles_visualization_clear_flag = True
 
     def recordStep(self):

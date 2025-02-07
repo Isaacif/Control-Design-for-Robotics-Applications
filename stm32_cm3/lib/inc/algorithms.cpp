@@ -292,7 +292,6 @@ int16_t servoIn_Controller::check_integral_limit(int16_t ri_k)
     }
 }
 
-
 float servoIn_Controller::computeControlAction(int16_t sensor1_k, int16_t sensor2_k, int16_t time_period)
 {
     if(r1_k == 0)

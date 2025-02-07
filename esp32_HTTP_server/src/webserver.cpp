@@ -37,8 +37,8 @@
 //
 //*****************************************************************************
 
-const char* NETWORK_SSID = "TcTeste";              // Network Login setup
-const char* NETWORK_PASSWORD = "salve12345";          // Network password setup
+const char* NETWORK_SSID = "Rb01net";              // Network Login setup
+const char* NETWORK_PASSWORD = "asd2asd2";          // Network password setup
 
 WebServer espWebServer(WEB_SERVER_PORT);    // HTTP server object 
 HardwareSerial SerialPort(2);               // USART object
@@ -71,12 +71,10 @@ void requestHandler()
       Angle = espWebServer.arg("Angle");
       espWebServer.send(200, "text/plain", "Message received: " + Angle); // Gives a sucess indication.
       stm32_message = 1;
-      Serial.println("Sucessful Comunication. ");
     }
     else 
     {
       espWebServer.send(400, "text/plain", "Bad Request");      // Gives a failure indication.
-      Serial.println("Failed Comunication. ");
     }
 }
 
@@ -89,22 +87,13 @@ void requestHandler()
 
 void setup() 
 {
-    Serial.begin(115200);
-    Serial.print("Connecting to ");
-    Serial.println(NETWORK_SSID);
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     while (WiFi.status() != WL_CONNECTED) 
     {
       delay(500);
-      Serial.print(".");
     }
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
     espWebServer.on("/", requestHandler);     
-    espWebServer.begin();
-    Serial.println("HTTP server started");          
+    espWebServer.begin();       
 
     SerialPort.begin(115200, SERIAL_8N1, RX_pin, TX_pin);                                                       
 }
@@ -123,14 +112,12 @@ void loop()
     if(SerialPort.available()) 
     {
         int receivedMessage = SerialPort.read();
-        Serial.println(receivedMessage);
     }
 
     if(stm32_message)
     {
       bufferMessage = Joint + "," + K_iter;
       bufferMessage += "," + Angle;
-      Serial.println(bufferMessage);
       SerialPort.println(bufferMessage);
       stm32_message = 0;
     }
